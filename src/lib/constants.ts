@@ -14,6 +14,10 @@ const AMBIGUITY_BY_LIFE_STAGE: Record<LifeStage, number> = {
   'student': 12,
   'early-career': 14,
   'mid-career': 16,
+  'freelance': 15,
+  'caregiver': 14,
+  'retired': 18,
+  'between-jobs': 12,
   'other': 12,
 };
 
@@ -51,6 +55,18 @@ export const FUNCTION_COLORS: Record<string, string> = {
 };
 
 export const FUNCTION_LABELS: Record<string, string> = {
+  Ti: 'Inner Logic',
+  Te: 'Outer Logic',
+  Fi: 'Inner Feeling',
+  Fe: 'People Feeling',
+  Ni: 'Gut Insight',
+  Ne: 'Idea Exploring',
+  Si: 'Memory & Detail',
+  Se: 'In-the-Moment',
+};
+
+// Technical names for tooltips or advanced users
+export const FUNCTION_LABELS_TECHNICAL: Record<string, string> = {
   Ti: 'Introverted Thinking',
   Te: 'Extraverted Thinking',
   Fi: 'Introverted Feeling',

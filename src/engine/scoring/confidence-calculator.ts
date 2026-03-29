@@ -1,6 +1,7 @@
 import type { Answer } from '@/types/questions';
 import type { NormalizedScores, ConfidenceMetrics, Contradiction } from '@/types/scoring';
 import type { StackMatch } from '@/types/stacks';
+import type { UserContext } from '@/types/context';
 import { QUESTION_PAIRS } from '@/types/cognitive-functions';
 import { CONFIDENCE_WEIGHTS } from '@/lib/constants';
 
@@ -14,7 +15,8 @@ export function calculateConfidence(
   answers: Answer[],
   normalizedScores: NormalizedScores,
   matches: StackMatch[],
-  contradictions: Contradiction[]
+  contradictions: Contradiction[],
+  context?: UserContext | null
 ): ConfidenceMetrics {
   // Factor 1: Margin of victory (40%)
   const marginOfVictory =
@@ -40,11 +42,21 @@ export function calculateConfidence(
   const polarization = Math.min(100, avgDiff * 2);
 
   // Weighted overall
-  const overall =
+  let overall =
     marginConfidence * CONFIDENCE_WEIGHTS.margin +
     consistency * CONFIDENCE_WEIGHTS.consistency +
     timeConfidence * CONFIDENCE_WEIGHTS.responseTime +
     polarization * CONFIDENCE_WEIGHTS.polarization;
+
+  // Retired bonus: less environmental pressure = more trustworthy answers
+  if (context?.lifeStage === 'retired') {
+    overall = Math.min(100, overall + 5);
+  }
+
+  // High stress penalty: answers under stress are less reliable
+  if (context?.stressLevel === 'high') {
+    overall = Math.max(0, overall - 8);
+  }
 
   // Detect ambiguous pairs
   const ambiguousPairs = QUESTION_PAIRS.filter(

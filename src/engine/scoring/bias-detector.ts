@@ -37,7 +37,7 @@ export function detectBias(
       indicators.push({
         type: 'social-desirability',
         description:
-          'Your prior familiarity with MBTI combined with high scores on commonly idealized functions (Ni, Ti, Ne) may indicate some answers reflect aspiration rather than natural behavior.',
+          'Since you already know about MBTI, you might have picked answers that match the type you think you are (or want to be) instead of how you actually act day to day.',
         affectedFunctions: highDesirable,
         magnitude: 0.4 + (highDesirable.length - 2) * 0.15,
       });
@@ -63,7 +63,7 @@ export function detectBias(
           indicators.push({
             type: 'environment-pressure',
             description:
-              `Your structured daily environment may be inflating your ${inflatedStructured.join('/')} scores. Your "default behavior" answers may better reflect your natural preferences.`,
+              `You live or work in a pretty structured setting, which might be boosting your ${inflatedStructured.join('/')} scores. The way you act at work might not be the same as the "real you" at home.`,
             affectedFunctions: inflatedStructured,
             magnitude: 0.3,
           });
@@ -80,7 +80,7 @@ export function detectBias(
         indicators.push({
           type: 'environment-pressure',
           description:
-            `Your flexible lifestyle may be inflating your ${inflatedFlexible.join('/')} scores. Consider whether you would still favor these patterns in a more structured setting.`,
+            `Your free and flexible lifestyle might be boosting your ${inflatedFlexible.join('/')} scores. You might act differently if you had a more structured routine.`,
           affectedFunctions: inflatedFlexible,
           magnitude: 0.25,
         });
@@ -88,7 +88,57 @@ export function detectBias(
     }
   }
 
-  // 3. Self-image bias — detect if all introverted or all extraverted functions are high
+  // 3. Work environment type bias
+  if (context?.workEnvironment && context.workEnvironment !== 'na') {
+    const envMap: Record<string, { functions: CognitiveFunction[]; label: string }> = {
+      corporate: { functions: ['Te', 'Fe'], label: 'corporate' },
+      startup: { functions: ['Ne', 'Te'], label: 'startup' },
+      creative: { functions: ['Fi', 'Ne'], label: 'creative' },
+      service: { functions: ['Fe', 'Se'], label: 'service/caregiving' },
+      technical: { functions: ['Ti', 'Si'], label: 'technical' },
+    };
+    const env = envMap[context.workEnvironment];
+    if (env) {
+      const inflated = env.functions.filter(
+        fn => normalizedScores.globalNormalized[fn] >= 65
+      );
+      if (inflated.length > 0) {
+        indicators.push({
+          type: 'environment-pressure',
+          description: `Your ${env.label} work environment may be boosting your ${inflated.join('/')} scores. Think about how you'd act in a completely different setting.`,
+          affectedFunctions: inflated,
+          magnitude: 0.3,
+        });
+      }
+    }
+  }
+
+  // 4. Living situation bias
+  if (context?.livingSituation === 'alone') {
+    const inflated: CognitiveFunction[] = (['Fi', 'Ti'] as CognitiveFunction[]).filter(
+      fn => normalizedScores.globalNormalized[fn] >= 70
+    );
+    if (inflated.length > 0) {
+      indicators.push({
+        type: 'environment-pressure',
+        description: `Living alone can reinforce introverted patterns. Your high ${inflated.join('/')} scores might partly reflect your living situation rather than pure preference.`,
+        affectedFunctions: inflated,
+        magnitude: 0.2,
+      });
+    }
+  }
+
+  // 5. Stress state bias
+  if (context?.stressLevel === 'high') {
+    indicators.push({
+      type: 'stress-state',
+      description: 'You said you\'re under a lot of stress right now. That can temporarily shift your answers — especially the stress-related ones — away from your normal patterns.',
+      affectedFunctions: [],
+      magnitude: 0.5,
+    });
+  }
+
+  // 6. Self-image bias — detect if all introverted or all extraverted functions are high
   const introFns: CognitiveFunction[] = ['Ti', 'Fi', 'Ni', 'Si'];
   const extroFns: CognitiveFunction[] = ['Te', 'Fe', 'Ne', 'Se'];
 
@@ -103,7 +153,7 @@ export function detectBias(
     indicators.push({
       type: 'self-image',
       description:
-        `Your scores skew heavily toward ${skewedToward} functions (${Math.round(attitudeSkew)} point gap). While this can be genuine, extreme skew sometimes reflects self-image rather than actual cognitive preference.`,
+        `Almost all your answers lean ${skewedToward}. That could be genuinely you, but sometimes people answer based on whether they see themselves as an introvert or extrovert, rather than how they actually handle each situation.`,
       affectedFunctions: skewedToward === 'introverted' ? introFns : extroFns,
       magnitude: Math.min(0.7, attitudeSkew / 50),
     });

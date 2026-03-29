@@ -14,9 +14,9 @@ interface ForcedChoiceProps {
 }
 
 const INTENSITY_OPTIONS = [
-  { value: 1 as const, label: 'Slightly' },
-  { value: 2 as const, label: 'Somewhat' },
-  { value: 3 as const, label: 'Strongly' },
+  { value: 1 as const, label: 'A little' },
+  { value: 2 as const, label: 'Pretty much' },
+  { value: 3 as const, label: 'Exactly me' },
 ];
 
 export function ForcedChoice({
@@ -181,7 +181,7 @@ export function ForcedChoice({
                     >
                       <div className="flex items-center gap-2.5 mt-4 pt-4 border-t border-white/[0.06]">
                         <span className="text-xs font-mono text-muted tracking-wider mr-1">
-                          How strongly?
+                          How much is this you?
                         </span>
                         {INTENSITY_OPTIONS.map((opt) => (
                           <button

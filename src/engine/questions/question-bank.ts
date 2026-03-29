@@ -83,6 +83,70 @@ export const CORE_QUESTIONS: Question[] = [
           },
         ],
       },
+      {
+        lifeStage: 'freelance',
+        questionText: 'When a client brings you a tough problem to solve:',
+        options: [
+          {
+            id: 'c1-01-a-f',
+            text: 'You dig into the problem yourself until you truly understand the "why" behind it, even if it takes extra time.',
+            functionWeights: { Ti: 2 },
+          },
+          {
+            id: 'c1-01-b-f',
+            text: 'You find a proven approach and deliver a working solution — clients care about results, not how long you spent thinking.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'caregiver',
+        questionText: 'When you run into a tough situation in your daily caregiving:',
+        options: [
+          {
+            id: 'c1-01-a-c',
+            text: 'You need to understand the full picture yourself before you act — you want to know why something is happening.',
+            functionWeights: { Ti: 2 },
+          },
+          {
+            id: 'c1-01-b-c',
+            text: 'You look for advice that already works — what doctors, experts, or other caregivers recommend — and go with that.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'retired',
+        questionText: 'When you come across a tricky problem in your daily life:',
+        options: [
+          {
+            id: 'c1-01-a-r',
+            text: 'You work through it yourself until it makes sense — you enjoy figuring out the "why" behind things.',
+            functionWeights: { Ti: 2 },
+          },
+          {
+            id: 'c1-01-b-r',
+            text: 'You find what others have already figured out and use that — no need to reinvent the wheel.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'between-jobs',
+        questionText: 'When you\'re trying to figure out a tough decision during this transition:',
+        options: [
+          {
+            id: 'c1-01-a-bj',
+            text: 'You think it through deeply on your own — you need to fully understand your situation before making a move.',
+            functionWeights: { Ti: 2 },
+          },
+          {
+            id: 'c1-01-b-bj',
+            text: 'You look for proven strategies and advice from people who\'ve been through this — getting moving matters more than overthinking.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
     ],
     chunk: 1,
     weight: 1.0,
@@ -217,6 +281,70 @@ export const CORE_QUESTIONS: Question[] = [
           {
             id: 'c1-05-b-m',
             text: 'Research the evidence and consult experts — you need external backing before challenging the status quo.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'freelance',
+        questionText: 'When a common approach in your field doesn\'t sit right with you, you:',
+        options: [
+          {
+            id: 'c1-05-a-f',
+            text: 'Pick it apart yourself to find the flaw — you trust your own thinking over what everyone else does.',
+            functionWeights: { Ti: 2 },
+          },
+          {
+            id: 'c1-05-b-f',
+            text: 'Look for articles, data, or other freelancers\' experiences to back up your doubt — outside proof matters.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'caregiver',
+        questionText: 'When advice from a doctor or expert doesn\'t sit right with you, you:',
+        options: [
+          {
+            id: 'c1-05-a-c',
+            text: 'Think it through yourself to figure out what doesn\'t add up — you trust your own reasoning.',
+            functionWeights: { Ti: 2 },
+          },
+          {
+            id: 'c1-05-b-c',
+            text: 'Look for other sources or get a second opinion — you want outside evidence before questioning an expert.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'retired',
+        questionText: 'When something people generally accept as true doesn\'t sit right with you, you:',
+        options: [
+          {
+            id: 'c1-05-a-r',
+            text: 'Work through the logic yourself to find where it breaks down — you trust your own thinking.',
+            functionWeights: { Ti: 2 },
+          },
+          {
+            id: 'c1-05-b-r',
+            text: 'Look into what researchers or other knowledgeable people say — outside evidence helps you decide.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'between-jobs',
+        questionText: 'When common career advice doesn\'t sit right with you, you:',
+        options: [
+          {
+            id: 'c1-05-a-bj',
+            text: 'Think it through yourself to find where the logic falls apart — you trust your own analysis.',
+            functionWeights: { Ti: 2 },
+          },
+          {
+            id: 'c1-05-b-bj',
+            text: 'Look for data or talk to people who\'ve been through it — real-world evidence matters more than your hunch alone.',
             functionWeights: { Te: 2 },
           },
         ],
@@ -408,6 +536,70 @@ export const CORE_QUESTIONS: Question[] = [
           },
         ],
       },
+      {
+        lifeStage: 'freelance',
+        questionText: 'If a client gave you a project with no deadline and no check-ins, you would:',
+        options: [
+          {
+            id: 'c2-01-a-f',
+            text: 'Use the freedom to dig deeper — you\'d research and refine until you really understood it.',
+            functionWeights: { Ti: 2 },
+          },
+          {
+            id: 'c2-01-b-f',
+            text: 'Still push to deliver something solid — producing results is just how you operate, deadline or not.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'caregiver',
+        questionText: 'If no one was counting on you for a set schedule and there were no obligations today, you would:',
+        options: [
+          {
+            id: 'c2-01-a-c',
+            text: 'Spend time understanding something deeply — reading, learning, figuring out how things really work.',
+            functionWeights: { Ti: 2 },
+          },
+          {
+            id: 'c2-01-b-c',
+            text: 'Still get things done around the house or work on something productive — you just naturally want results.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'retired',
+        questionText: 'If you had no commitments and nothing on your calendar, you would:',
+        options: [
+          {
+            id: 'c2-01-a-r',
+            text: 'Spend the time going deeper into something that interests you — understanding things fully is satisfying on its own.',
+            functionWeights: { Ti: 2 },
+          },
+          {
+            id: 'c2-01-b-r',
+            text: 'Still find something to accomplish — you naturally want to produce results, even without anyone expecting it.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'between-jobs',
+        questionText: 'During this time between jobs, with no boss or deadlines, you find yourself:',
+        options: [
+          {
+            id: 'c2-01-a-bj',
+            text: 'Going deep on things that interest you — reading, researching, and understanding things just because you can.',
+            functionWeights: { Ti: 2 },
+          },
+          {
+            id: 'c2-01-b-bj',
+            text: 'Still pushing to get things done — updating your resume, networking, making progress. You can\'t sit idle.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
     ],
     isDefaultVsForced: true,
     chunk: 2,
@@ -477,6 +669,70 @@ export const CORE_QUESTIONS: Question[] = [
           {
             id: 'c2-02-b-m',
             text: 'Read the room — the energy, the dynamics between people, the atmosphere and body language.',
+            functionWeights: { Se: 1.5, Si: 0.5 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'freelance',
+        questionText: 'At a meetup or client event where you don\'t know many people, you naturally:',
+        options: [
+          {
+            id: 'c2-02-a-f',
+            text: 'Get into interesting conversations — bouncing ideas around, exploring possibilities with new people.',
+            functionWeights: { Ne: 1.5, Ni: 0.5 },
+          },
+          {
+            id: 'c2-02-b-f',
+            text: 'Take in the scene — the venue, the energy, how people carry themselves, the overall vibe.',
+            functionWeights: { Se: 1.5, Si: 0.5 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'caregiver',
+        questionText: 'At a gathering or community event where you don\'t know many people, you naturally:',
+        options: [
+          {
+            id: 'c2-02-a-c',
+            text: 'Get into interesting conversations — sharing ideas, swapping stories, and exploring random "what ifs."',
+            functionWeights: { Ne: 1.5, Ni: 0.5 },
+          },
+          {
+            id: 'c2-02-b-c',
+            text: 'Soak in the atmosphere — the sounds, the food, the energy, and how people are interacting around you.',
+            functionWeights: { Se: 1.5, Si: 0.5 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'retired',
+        questionText: 'At a community event or social gathering where you don\'t know many people, you naturally:',
+        options: [
+          {
+            id: 'c2-02-a-r',
+            text: 'Get into interesting conversations — exploring ideas, debating topics, and brainstorming with new people.',
+            functionWeights: { Ne: 1.5, Ni: 0.5 },
+          },
+          {
+            id: 'c2-02-b-r',
+            text: 'Take in the surroundings — the setting, the music, the food, the way people interact.',
+            functionWeights: { Se: 1.5, Si: 0.5 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'between-jobs',
+        questionText: 'At a social event or meetup where you don\'t know many people, you naturally:',
+        options: [
+          {
+            id: 'c2-02-a-bj',
+            text: 'Get into interesting conversations — sharing ideas, exploring possibilities, brainstorming with strangers.',
+            functionWeights: { Ne: 1.5, Ni: 0.5 },
+          },
+          {
+            id: 'c2-02-b-bj',
+            text: 'Soak in what\'s around you — the space, the energy, the body language, the overall feel of the room.',
             functionWeights: { Se: 1.5, Si: 0.5 },
           },
         ],
@@ -665,6 +921,70 @@ export const CORE_QUESTIONS: Question[] = [
           },
         ],
       },
+      {
+        lifeStage: 'freelance',
+        questionText: 'When starting a new client project, you:',
+        options: [
+          {
+            id: 'c2-08-a-f',
+            text: 'Already picture the finished product — you know exactly what you\'re delivering and work toward that vision.',
+            functionWeights: { Ni: 2 },
+          },
+          {
+            id: 'c2-08-b-f',
+            text: 'Try a few different directions first — you need to explore before you commit to one approach for the client.',
+            functionWeights: { Ne: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'caregiver',
+        questionText: 'When taking on a new responsibility in your caregiving routine, you:',
+        options: [
+          {
+            id: 'c2-08-a-c',
+            text: 'Already see how it should go — you have a clear picture and work toward making it happen.',
+            functionWeights: { Ni: 2 },
+          },
+          {
+            id: 'c2-08-b-c',
+            text: 'Try a few different approaches first — you need to see what works before settling on a routine.',
+            functionWeights: { Ne: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'retired',
+        questionText: 'When starting a new activity or hobby, you:',
+        options: [
+          {
+            id: 'c2-08-a-r',
+            text: 'Already picture where you want to end up — you know what you\'re going for and work toward that vision.',
+            functionWeights: { Ni: 2 },
+          },
+          {
+            id: 'c2-08-b-r',
+            text: 'Try a bunch of different things first — you need to explore before committing to one way of doing it.',
+            functionWeights: { Ne: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'between-jobs',
+        questionText: 'When you start figuring out your next steps during this transition, you:',
+        options: [
+          {
+            id: 'c2-08-a-bj',
+            text: 'Already have a clear picture of where you want to land — you know the direction and work toward it.',
+            functionWeights: { Ni: 2 },
+          },
+          {
+            id: 'c2-08-b-bj',
+            text: 'Explore a bunch of different options first — you need to try different paths before picking one.',
+            functionWeights: { Ne: 2 },
+          },
+        ],
+      },
     ],
     chunk: 2,
     weight: 0.85,
@@ -755,6 +1075,70 @@ export const CORE_QUESTIONS: Question[] = [
           {
             id: 'c2-10-b-m',
             text: 'You work to influence the direction strategically — keeping alignment matters as much as the outcome.',
+            functionWeights: { Fe: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'freelance',
+        questionText: 'When a client wants to go in a direction you think is wrong:',
+        options: [
+          {
+            id: 'c2-10-a-f',
+            text: 'You speak up honestly, even if it risks the relationship — you can\'t go along with something that feels wrong.',
+            functionWeights: { Fi: 2 },
+          },
+          {
+            id: 'c2-10-b-f',
+            text: 'You try to steer them in a better direction diplomatically — keeping a good working relationship matters too.',
+            functionWeights: { Fe: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'caregiver',
+        questionText: 'When your family is heading in a direction you think is wrong:',
+        options: [
+          {
+            id: 'c2-10-a-c',
+            text: 'You say something, even if it causes tension — you can\'t stay quiet when something feels wrong.',
+            functionWeights: { Fi: 2 },
+          },
+          {
+            id: 'c2-10-b-c',
+            text: 'You try to guide things gently without causing a rift — keeping the family\'s spirit up matters too.',
+            functionWeights: { Fe: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'retired',
+        questionText: 'When people around you are heading in a direction you think is wrong:',
+        options: [
+          {
+            id: 'c2-10-a-r',
+            text: 'You speak up, even if it makes things uncomfortable — you can\'t go along with something that feels wrong.',
+            functionWeights: { Fi: 2 },
+          },
+          {
+            id: 'c2-10-b-r',
+            text: 'You try to nudge things in a better direction without making waves — keeping the group together matters too.',
+            functionWeights: { Fe: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'between-jobs',
+        questionText: 'When people giving you advice are pushing you in a direction that feels wrong:',
+        options: [
+          {
+            id: 'c2-10-a-bj',
+            text: 'You push back, even if it\'s awkward — you can\'t follow a path that doesn\'t sit right with you.',
+            functionWeights: { Fi: 2 },
+          },
+          {
+            id: 'c2-10-b-bj',
+            text: 'You hear them out and redirect the conversation — you don\'t want to burn bridges during this time.',
             functionWeights: { Fe: 2 },
           },
         ],
@@ -1036,6 +1420,70 @@ export const CORE_QUESTIONS: Question[] = [
           },
         ],
       },
+      {
+        lifeStage: 'freelance',
+        questionText: 'When coordinating with clients or people you work with toward a goal, you focus more on:',
+        options: [
+          {
+            id: 'c3-10-a-f',
+            text: 'Making sure everyone feels heard and on the same page — good relationships lead to better work.',
+            functionWeights: { Fe: 2 },
+          },
+          {
+            id: 'c3-10-b-f',
+            text: 'Clear deliverables, timelines, and expectations — structure keeps things on track.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'caregiver',
+        questionText: 'When organizing your family or people in your care toward getting something done, you focus more on:',
+        options: [
+          {
+            id: 'c3-10-a-c',
+            text: 'Making sure everyone feels included and supported — people cooperate better when they feel cared for.',
+            functionWeights: { Fe: 2 },
+          },
+          {
+            id: 'c3-10-b-c',
+            text: 'Clear tasks, schedules, and who\'s doing what — structure is how things actually get done.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'retired',
+        questionText: 'When organizing a group activity or community effort, you focus more on:',
+        options: [
+          {
+            id: 'c3-10-a-r',
+            text: 'Making sure everyone feels welcome and heard — a group that gets along accomplishes more.',
+            functionWeights: { Fe: 2 },
+          },
+          {
+            id: 'c3-10-b-r',
+            text: 'Clear roles, a solid plan, and keeping things on schedule — organization gets things done.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'between-jobs',
+        questionText: 'When working with others on something right now — a group project, volunteer work, or networking, you focus more on:',
+        options: [
+          {
+            id: 'c3-10-a-bj',
+            text: 'Making sure everyone feels good about working together — people do better when morale is high.',
+            functionWeights: { Fe: 2 },
+          },
+          {
+            id: 'c3-10-b-bj',
+            text: 'Clear goals, assigned tasks, and a plan to follow — structure is how you make progress.',
+            functionWeights: { Te: 2 },
+          },
+        ],
+      },
     ],
     chunk: 3,
     weight: 1.0,
@@ -1130,6 +1578,70 @@ export const CORE_QUESTIONS: Question[] = [
           {
             id: 'c4-02-b-m',
             text: 'Framing it constructively — you want to build their confidence, not just point out problems.',
+            functionWeights: { Fe: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'freelance',
+        questionText: 'When giving feedback to a client or someone you work with, you lean toward:',
+        options: [
+          {
+            id: 'c4-02-a-f',
+            text: 'Being straight-up and honest — sugarcoating wastes time and they need to know what\'s not working.',
+            functionWeights: { Te: 2 },
+          },
+          {
+            id: 'c4-02-b-f',
+            text: 'Starting with what\'s going well — you frame the critique carefully so the relationship stays strong.',
+            functionWeights: { Fe: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'caregiver',
+        questionText: 'When giving feedback to someone in your family or care, you lean toward:',
+        options: [
+          {
+            id: 'c4-02-a-c',
+            text: 'Being honest and direct about what needs to change — they need to hear the truth to improve.',
+            functionWeights: { Te: 2 },
+          },
+          {
+            id: 'c4-02-b-c',
+            text: 'Leading with encouragement — you word things carefully so they don\'t lose confidence.',
+            functionWeights: { Fe: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'retired',
+        questionText: 'When giving feedback to someone in your community or group, you lean toward:',
+        options: [
+          {
+            id: 'c4-02-a-r',
+            text: 'Being direct about what needs fixing — honest feedback helps people more than polite silence.',
+            functionWeights: { Te: 2 },
+          },
+          {
+            id: 'c4-02-b-r',
+            text: 'Starting with something positive — you want to keep things friendly and not hurt anyone\'s feelings.',
+            functionWeights: { Fe: 2 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'between-jobs',
+        questionText: 'When giving feedback to someone you\'re working with right now — a contact, a collaborator, anyone, you lean toward:',
+        options: [
+          {
+            id: 'c4-02-a-bj',
+            text: 'Being straight-up — sugarcoating wastes everyone\'s time and honest input gets better results.',
+            functionWeights: { Te: 2 },
+          },
+          {
+            id: 'c4-02-b-bj',
+            text: 'Starting with the good stuff — especially right now, you want to keep relationships positive.',
             functionWeights: { Fe: 2 },
           },
         ],
@@ -1313,6 +1825,70 @@ export const CORE_QUESTIONS: Question[] = [
           {
             id: 'c4-08-b-m',
             text: 'You have the autonomy to explore new approaches and chase the most promising leads.',
+            functionWeights: { Ne: 1.5, Ti: 0.5 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'freelance',
+        questionText: 'You do your best client work when:',
+        options: [
+          {
+            id: 'c4-08-a-f',
+            text: 'You have a clear scope and know exactly what to deliver and when.',
+            functionWeights: { Si: 1.5, Te: 0.5 },
+          },
+          {
+            id: 'c4-08-b-f',
+            text: 'You have the freedom to explore different approaches and follow whatever seems most promising.',
+            functionWeights: { Ne: 1.5, Ti: 0.5 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'caregiver',
+        questionText: 'You handle your daily responsibilities best when:',
+        options: [
+          {
+            id: 'c4-08-a-c',
+            text: 'You have a set routine and know exactly what needs to happen and when.',
+            functionWeights: { Si: 1.5, Te: 0.5 },
+          },
+          {
+            id: 'c4-08-b-c',
+            text: 'You have the flexibility to adjust and try new approaches as the day unfolds.',
+            functionWeights: { Ne: 1.5, Ti: 0.5 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'retired',
+        questionText: 'You feel most productive in your daily life when:',
+        options: [
+          {
+            id: 'c4-08-a-r',
+            text: 'You have a clear plan for the day and know exactly what you\'re doing next.',
+            functionWeights: { Si: 1.5, Te: 0.5 },
+          },
+          {
+            id: 'c4-08-b-r',
+            text: 'You have the freedom to follow your curiosity and do whatever feels most interesting.',
+            functionWeights: { Ne: 1.5, Ti: 0.5 },
+          },
+        ],
+      },
+      {
+        lifeStage: 'between-jobs',
+        questionText: 'You make the most progress on your plans right now when:',
+        options: [
+          {
+            id: 'c4-08-a-bj',
+            text: 'You have a clear daily structure — a checklist of what to do and when to do it.',
+            functionWeights: { Si: 1.5, Te: 0.5 },
+          },
+          {
+            id: 'c4-08-b-bj',
+            text: 'You have the freedom to explore different paths and follow whatever lead feels most promising.',
             functionWeights: { Ne: 1.5, Ti: 0.5 },
           },
         ],

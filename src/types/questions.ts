@@ -1,5 +1,5 @@
 import type { CognitiveFunction } from './cognitive-functions';
-import type { LifeStage } from './context';
+import type { LifeStage, WorkEnvironment } from './context';
 
 export type QuestionCategory =
   | 'decision-making'
@@ -17,7 +17,8 @@ export interface ChoiceOption {
 }
 
 export interface ContextVariant {
-  lifeStage: LifeStage;
+  lifeStage?: LifeStage;
+  workEnvironment?: WorkEnvironment;
   questionText: string;
   options: [ChoiceOption, ChoiceOption];
 }

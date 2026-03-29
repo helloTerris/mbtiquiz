@@ -30,7 +30,7 @@ export interface Contradiction {
 }
 
 export interface BiasIndicator {
-  type: 'self-image' | 'environment-pressure' | 'social-desirability';
+  type: 'self-image' | 'environment-pressure' | 'social-desirability' | 'stress-state';
   description: string;
   affectedFunctions: CognitiveFunction[];
   magnitude: number; // 0-1

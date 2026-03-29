@@ -165,6 +165,121 @@ function getConfirmationBiasModifier(
   return 1.0;
 }
 
+// Work environment → trained function associations
+const WORK_ENV_ASSOCIATIONS: Record<string, { functions: CognitiveFunction[]; categories: string[] }> = {
+  corporate: { functions: ['Te', 'Fe'], categories: ['work-style'] },
+  startup:   { functions: ['Ne', 'Te'], categories: ['work-style'] },
+  creative:  { functions: ['Fi', 'Ne'], categories: ['work-style', 'inner-world'] },
+  service:   { functions: ['Fe', 'Se'], categories: ['social-interaction'] },
+  technical: { functions: ['Ti', 'Si'], categories: ['work-style', 'information-processing'] },
+};
+
+/**
+ * Work environment type discount: when a work-style/relevant answer aligns
+ * with functions trained by the user's specific work environment.
+ */
+function getWorkEnvTypeModifier(
+  question: Question,
+  selectedFunctions: CognitiveFunction[],
+  context: UserContext | null
+): number {
+  if (!context || !context.workEnvironment || context.workEnvironment === 'na') return 1.0;
+
+  const assoc = WORK_ENV_ASSOCIATIONS[context.workEnvironment];
+  if (!assoc) return 1.0;
+  if (!assoc.categories.includes(question.category)) return 1.0;
+
+  if (selectedFunctions.some(fn => assoc.functions.includes(fn))) return 0.92;
+
+  return 1.0;
+}
+
+/**
+ * Life stage modifier: certain life stages force specific cognitive patterns.
+ *
+ * Freelance + Te/Si on work-style → 0.92x (self-employment forces discipline)
+ * Caregiver + Fe/Si on social/decision → 0.92x (caregiving forces emotional labor + routine)
+ * Between jobs + stress-response → 0.9x (high-pressure period distorts stress answers)
+ * Retired/student/early-career/mid-career/other → 1.0x
+ */
+function getLifeStageModifier(
+  question: Question,
+  selectedFunctions: CognitiveFunction[],
+  context: UserContext | null
+): number {
+  if (!context) return 1.0;
+
+  if (context.lifeStage === 'freelance' && question.category === 'work-style') {
+    if (selectedFunctions.some(fn => (['Te', 'Si'] as CognitiveFunction[]).includes(fn))) return 0.92;
+  }
+
+  if (context.lifeStage === 'caregiver') {
+    if (question.category === 'social-interaction' || question.category === 'decision-making') {
+      if (selectedFunctions.some(fn => (['Fe', 'Si'] as CognitiveFunction[]).includes(fn))) return 0.92;
+    }
+  }
+
+  if (context.lifeStage === 'between-jobs' && question.category === 'stress-response') {
+    return 0.9;
+  }
+
+  return 1.0;
+}
+
+/**
+ * Living situation modifier:
+ * Alone + Fi/Ti on social/inner-world → 0.93x (isolation reinforces introverted judging)
+ * Partner/family + Fe on social/decision → 0.93x (family forces Fe adaptation)
+ * Roommates + Fe/Se on social → 0.93x (shared living forces harmony + present-moment)
+ */
+function getLivingSituationModifier(
+  question: Question,
+  selectedFunctions: CognitiveFunction[],
+  context: UserContext | null
+): number {
+  if (!context || !context.livingSituation) return 1.0;
+
+  if (context.livingSituation === 'alone') {
+    if (question.category === 'social-interaction' || question.category === 'inner-world') {
+      if (selectedFunctions.some(fn => (['Fi', 'Ti'] as CognitiveFunction[]).includes(fn))) return 0.93;
+    }
+  }
+
+  if (context.livingSituation === 'partner-family') {
+    if (question.category === 'social-interaction' || question.category === 'decision-making') {
+      if (selectedFunctions.includes('Fe')) return 0.93;
+    }
+  }
+
+  if (context.livingSituation === 'roommates') {
+    if (question.category === 'social-interaction') {
+      if (selectedFunctions.some(fn => (['Fe', 'Se'] as CognitiveFunction[]).includes(fn))) return 0.93;
+    }
+  }
+
+  return 1.0;
+}
+
+/**
+ * Stress level modifier: high stress means the user is currently in grip,
+ * so stress-response answers reflect current state not natural pattern.
+ *
+ * High stress + stress-response → 0.85x (heavy discount)
+ * High stress + decision-making → 0.95x (mild distortion)
+ * Moderate/low → 1.0x
+ */
+function getStressLevelModifier(
+  question: Question,
+  context: UserContext | null
+): number {
+  if (!context || !context.stressLevel || context.stressLevel !== 'high') return 1.0;
+
+  if (question.category === 'stress-response') return 0.85;
+  if (question.category === 'decision-making') return 0.95;
+
+  return 1.0;
+}
+
 /**
  * Pure reducer: takes current scores + a new answer, returns updated scores.
  */
@@ -182,13 +297,20 @@ export function accumulateScore(
   const selectedFunctions = Object.keys(selectedOption.functionWeights) as CognitiveFunction[];
   const ctx = context ?? null;
   const workEnvModifier = getWorkEnvironmentModifier(question, selectedFunctions, ctx);
+  const workEnvTypeModifier = getWorkEnvTypeModifier(question, selectedFunctions, ctx);
   const socialEnvModifier = getSocialEnvironmentModifier(question, selectedFunctions, ctx);
   const upbringingModifier = getUpbringingModifier(question, selectedFunctions, ctx);
   const confirmBiasModifier = getConfirmationBiasModifier(selectedFunctions, ctx);
+  const lifeStageModifier = getLifeStageModifier(question, selectedFunctions, ctx);
+  const livingSitModifier = getLivingSituationModifier(question, selectedFunctions, ctx);
+  const stressModifier = getStressLevelModifier(question, ctx);
 
   // Cap combined context modifiers at 0.85 (15% max discount) to prevent
   // over-penalizing people whose environment genuinely matches their type.
-  const contextModifier = Math.max(0.85, workEnvModifier * socialEnvModifier * upbringingModifier * confirmBiasModifier);
+  const contextModifier = Math.max(0.85,
+    workEnvModifier * workEnvTypeModifier * socialEnvModifier * upbringingModifier
+    * confirmBiasModifier * lifeStageModifier * livingSitModifier * stressModifier
+  );
 
   const newScores = { ...current.scores };
   const newCounts = { ...current.questionCounts };

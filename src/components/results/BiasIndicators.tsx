@@ -12,12 +12,14 @@ const BIAS_ICONS: Record<BiasIndicator['type'], string> = {
   'self-image': '\u{1F6A9}',
   'environment-pressure': '\u{1F3E2}',
   'social-desirability': '\u{2728}',
+  'stress-state': '\u{1F525}',
 };
 
 const BIAS_TITLES: Record<BiasIndicator['type'], string> = {
   'self-image': 'Answering as who you want to be',
   'environment-pressure': 'Shaped by your environment',
   'social-desirability': 'Picking the "cool" answer',
+  'stress-state': 'Under stress right now',
 };
 
 export function BiasIndicators({ indicators }: BiasIndicatorsProps) {

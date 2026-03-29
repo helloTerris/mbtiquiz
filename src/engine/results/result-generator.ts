@@ -41,12 +41,13 @@ export function generateResult(
     answers,
     normalizedScores,
     rankedMatches,
-    contradictions
+    contradictions,
+    context
   );
 
   // 7. Generate explanation
   const primaryMatch = rankedMatches[0];
-  const explanations = generateExplanation(primaryMatch, normalizedScores, confidence);
+  const explanations = generateExplanation(primaryMatch, normalizedScores, confidence, context);
 
   // 8. Stress profile
   const stressProfile = profileStress(primaryMatch.stack, normalizedScores);

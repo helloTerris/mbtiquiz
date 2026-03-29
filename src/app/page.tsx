@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { Button } from '@/components/ui/Button';
@@ -7,12 +8,43 @@ import { GlassPanel } from '@/components/ui/GlassPanel';
 import { useQuizStore } from '@/stores/quiz-store';
 import { useContextStore } from '@/stores/context-store';
 import { useResultsStore } from '@/stores/results-store';
+import { generatePresetAnswers } from '@/lib/dev-presets';
+import { CORE_QUESTIONS } from '@/engine/questions/question-bank';
+import { STRESS_QUESTIONS } from '@/engine/questions/stress-questions';
+import type { MBTIType } from '@/types/stacks';
+
+const MBTI_TYPES: MBTIType[] = [
+  'INTJ', 'INTP', 'ENTJ', 'ENTP',
+  'INFJ', 'INFP', 'ENFJ', 'ENFP',
+  'ISTJ', 'ISTP', 'ESTJ', 'ESTP',
+  'ISFJ', 'ISFP', 'ESFJ', 'ESFP',
+];
 
 export default function LandingPage() {
   const router = useRouter();
   const resetQuiz = useQuizStore((s) => s.reset);
   const clearContext = useContextStore((s) => s.clear);
   const clearResults = useResultsStore((s) => s.clear);
+  const [devOpen, setDevOpen] = useState(false);
+
+  const allQuestions = [...CORE_QUESTIONS, ...STRESS_QUESTIONS];
+
+  const handlePreset = (type: MBTIType) => {
+    resetQuiz();
+    clearContext();
+    clearResults();
+
+    // Generate synthetic answers and feed them through the quiz store
+    // so the results page runs the real engine pipeline
+    const answers = generatePresetAnswers(type);
+    const store = useQuizStore.getState();
+    for (const answer of answers) {
+      const question = allQuestions.find(q => q.id === answer.questionId);
+      if (question) store.submitAnswer(answer, question);
+    }
+    store.setPhase('results');
+    router.push('/quiz/results');
+  };
 
   const handleStart = () => {
     resetQuiz();
@@ -124,6 +156,43 @@ export default function LandingPage() {
         >
           Based on Jungian cognitive function theory. All data stays in your browser.
         </motion.p>
+
+        {/* Dev-only preset panel — fixed bottom-right corner */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="fixed bottom-4 right-4 z-50">
+            {!devOpen ? (
+              <button
+                onClick={() => setDevOpen(true)}
+                className="px-3 py-2 text-xs font-mono rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all cursor-pointer backdrop-blur-sm"
+              >
+                DEV
+              </button>
+            ) : (
+              <div className="p-4 rounded-xl border border-amber-500/30 bg-background/95 backdrop-blur-md shadow-2xl w-72">
+                <div className="flex justify-between items-center mb-3">
+                  <p className="text-xs font-mono text-amber-400">Preset Results</p>
+                  <button
+                    onClick={() => setDevOpen(false)}
+                    className="text-xs text-muted hover:text-foreground cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {MBTI_TYPES.map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => handlePreset(type)}
+                      className="px-1.5 py-1.5 text-xs font-mono rounded-lg border border-border bg-surface/50 text-foreground hover:border-accent hover:bg-accent/10 transition-all cursor-pointer"
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );

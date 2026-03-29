@@ -26,7 +26,7 @@ export function analyzeGaps(
       selfScore: selfScores[fn],
       othersScore: othersScores[fn],
       delta,
-      interpretation: `Others see you as ${direction} ${label} (${fn})-oriented than you see yourself (${Math.abs(Math.round(delta))} point gap).`,
+      interpretation: `Other people think you use ${label} ${direction} than you think you do (${Math.abs(Math.round(delta))} point difference).`,
     });
   }
 

@@ -34,22 +34,22 @@ export interface LoopIndicator {
 }
 
 const LOOP_DESCRIPTIONS: Record<string, string> = {
-  'Ti-Si': 'Over-analyzing past experiences and details while avoiding new possibilities. May get stuck in rigid internal frameworks.',
-  'Ti-Ni': 'Deeply absorbed in internal logic and singular vision while avoiding engaging with the external world. May appear withdrawn.',
-  'Te-Se': 'Fixated on immediate efficiency and tangible results while ignoring deeper patterns and implications.',
-  'Te-Ne': 'Jumping between external systems and brainstorming while neglecting internal values and harmony.',
-  'Fi-Si': 'Dwelling on past emotional experiences while avoiding new connections. May become nostalgic or withdrawn.',
-  'Fi-Ni': 'Lost in personal ideals and singular vision while avoiding external engagement. May seem disconnected from reality.',
-  'Fe-Se': 'Over-focused on others\' immediate reactions and sensory stimulation while ignoring deeper insights.',
-  'Fe-Ne': 'Chasing group approval and possibilities while neglecting practical details and personal stability.',
-  'Ni-Fi': 'Stuck in internal vision and personal values while avoiding external action. May seem paralyzed by perfectionism.',
-  'Ni-Ti': 'Deep in abstract theorizing and pattern recognition while avoiding sharing ideas or taking action externally.',
-  'Ne-Te': 'Rapidly generating ideas and immediately trying to systematize them while ignoring personal values and others\' feelings.',
-  'Ne-Fe': 'Exploring possibilities to please everyone while neglecting practical follow-through and personal grounding.',
-  'Si-Ti': 'Rigid adherence to past procedures and internal logic while avoiding new experiences and external input.',
-  'Si-Fi': 'Clinging to familiar routines and personal values while avoiding new perspectives and group engagement.',
-  'Se-Te': 'Driven by immediate action and external efficiency while ignoring deeper meaning and personal reflection.',
-  'Se-Fe': 'Focused on shared sensory experiences and group dynamics while ignoring internal logic and long-term planning.',
+  'Ti-Si': 'You keep going over the same facts and past experiences in your head, but you\'re not trying anything new. It feels safe but you end up stuck.',
+  'Ti-Ni': 'You\'re deep in your own head — thinking and theorizing nonstop — but you\'re not talking to anyone or doing anything about it. You might seem checked out.',
+  'Te-Se': 'You\'re all about getting things done right now and seeing quick results, but you\'re skipping the bigger picture and deeper meaning.',
+  'Te-Ne': 'You keep bouncing between organizing things and brainstorming new ideas, but you\'re ignoring how you (and others) actually feel about it.',
+  'Fi-Si': 'You\'re reliving old feelings and memories a lot, but you\'re not letting new people or experiences in. Nostalgia has become a hiding spot.',
+  'Fi-Ni': 'You\'re wrapped up in your personal vision of how things "should" be, but you\'re not connecting with the real world. People might think you\'re distant.',
+  'Fe-Se': 'You\'re focused on what people around you think right now and chasing fun experiences, but you\'re not stopping to think deeper about things.',
+  'Fe-Ne': 'You\'re trying to make everyone happy while chasing every new idea, but nothing actually gets finished and you feel scattered.',
+  'Ni-Fi': 'You have a strong vision for how things should be but you can\'t seem to take action on it. Perfectionism and personal values are keeping you frozen.',
+  'Ni-Ti': 'You\'re stuck in deep thinking and pattern-spotting, but you\'re not sharing your ideas or turning them into anything real.',
+  'Ne-Te': 'You\'re coming up with tons of ideas and instantly trying to organize them all, but you\'re steamrolling over people\'s feelings in the process.',
+  'Ne-Fe': 'You\'re exploring every possibility to keep the group happy, but nothing concrete gets done and you lose track of what you actually want.',
+  'Si-Ti': 'You\'re doing things "the way they\'ve always been done" and backing it up with logic, but you\'re resisting anything new or different.',
+  'Si-Fi': 'You\'re holding tight to your comfort zone and personal values, but you\'re shutting out new perspectives and other people\'s input.',
+  'Se-Te': 'You\'re all action and efficiency — get it done now — but you\'re not stopping to think about why you\'re doing it or what it means.',
+  'Se-Fe': 'You\'re caught up in group vibes and shared experiences, but you\'re not thinking things through logically or planning ahead.',
 };
 
 export function detectLoop(

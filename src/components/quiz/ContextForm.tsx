@@ -1,22 +1,37 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/cn';
-import type { UserContext, LifeStage, UpbringingStyle } from '@/types/context';
+import type { UserContext, LifeStage, WorkEnvironment, LivingSituation, StressLevel, UpbringingStyle } from '@/types/context';
 
 interface ContextFormProps {
   onSubmit: (context: UserContext) => void;
 }
 
-type Step = 'lifeStage' | 'structure' | 'social' | 'upbringing' | 'mbtiExp';
+type Step = 'lifeStage' | 'workEnv' | 'structure' | 'socialAndLiving' | 'upbringingAndStress' | 'mbtiExp';
+
+// Life stages that have a work environment
+const WORKING_STAGES: LifeStage[] = ['student', 'early-career', 'mid-career', 'freelance'];
 
 const LIFE_STAGES: { value: LifeStage; label: string; desc: string; icon: string }[] = [
   { value: 'student', label: 'Student', desc: 'Currently studying', icon: '\u{1F393}' },
   { value: 'early-career', label: 'Early Career', desc: 'First few years working', icon: '\u{1F680}' },
   { value: 'mid-career', label: 'Mid Career', desc: 'Established in your field', icon: '\u{1F3AF}' },
+  { value: 'freelance', label: 'Freelance / Self-Employed', desc: 'You run your own work', icon: '\u{1F4BC}' },
+  { value: 'caregiver', label: 'Caregiver / Stay-at-Home', desc: 'Primary focus is caring for others', icon: '\u{1F49C}' },
+  { value: 'retired', label: 'Retired', desc: 'No longer working', icon: '\u{1F305}' },
+  { value: 'between-jobs', label: 'Between Jobs', desc: 'Currently in transition', icon: '\u{1F504}' },
   { value: 'other', label: 'Other', desc: 'None of these fit', icon: '\u{2728}' },
+];
+
+const WORK_ENVIRONMENTS: { value: WorkEnvironment; label: string; desc: string; icon: string }[] = [
+  { value: 'corporate', label: 'Corporate / Office', desc: 'Large org, clear chain of command', icon: '\u{1F3E2}' },
+  { value: 'startup', label: 'Startup / Small Team', desc: 'Fast-paced, wearing many hats', icon: '\u{26A1}' },
+  { value: 'creative', label: 'Creative / Artistic', desc: 'Design, writing, art, music', icon: '\u{1F3A8}' },
+  { value: 'service', label: 'Service / Caregiving', desc: 'Healthcare, education, social work', icon: '\u{1F91D}' },
+  { value: 'technical', label: 'Technical / Analytical', desc: 'Engineering, science, data', icon: '\u{1F52C}' },
 ];
 
 const STRUCTURES = [
@@ -31,10 +46,22 @@ const SOCIAL_LEVELS = [
   { value: 'high' as const, label: 'High', desc: 'Constantly around people', icon: '\u{1F389}' },
 ];
 
+const LIVING_SITUATIONS: { value: LivingSituation; label: string; desc: string; icon: string }[] = [
+  { value: 'alone', label: 'Live Alone', desc: 'Just you', icon: '\u{1F3E0}' },
+  { value: 'partner-family', label: 'Partner or Family', desc: 'With a partner, spouse, or family', icon: '\u{1F46A}' },
+  { value: 'roommates', label: 'Roommates', desc: 'Shared living with non-family', icon: '\u{1F465}' },
+];
+
 const UPBRINGING_STYLES: { value: UpbringingStyle; label: string; desc: string; icon: string }[] = [
   { value: 'be-tough', label: 'Be Tough', desc: 'Stay strong, be logical, don\'t show weakness', icon: '\u{1F6E1}' },
   { value: 'be-kind', label: 'Be Kind', desc: 'Think of others, keep the peace, be caring', icon: '\u{1F49B}' },
   { value: 'balanced', label: 'Balanced', desc: 'A mix of both, or neither stood out', icon: '\u{2696}' },
+];
+
+const STRESS_LEVELS: { value: StressLevel; label: string; desc: string; icon: string }[] = [
+  { value: 'low', label: 'Low', desc: 'Life feels manageable and calm', icon: '\u{1F33F}' },
+  { value: 'moderate', label: 'Moderate', desc: 'Some pressure but handling it', icon: '\u{1F60C}' },
+  { value: 'high', label: 'High', desc: 'Significant stress right now', icon: '\u{1F525}' },
 ];
 
 function RadioOption({
@@ -73,7 +100,6 @@ function RadioOption({
       )}
     >
       <div className="flex items-center gap-3">
-        {/* Selection indicator */}
         <div
           className={cn(
             'flex-shrink-0 w-5 h-5 rounded-full border-2 transition-all duration-300 flex items-center justify-center',
@@ -91,19 +117,10 @@ function RadioOption({
             />
           )}
         </div>
-
-        {/* Icon */}
         {icon && <span className="text-lg">{icon}</span>}
-
-        {/* Text */}
         <div className="flex-1 min-w-0">
-          <p className={cn(
-            'font-medium text-base transition-colors duration-300',
-            selected ? 'text-foreground' : 'text-foreground',
-          )}>{label}</p>
-          <p className={cn(
-            'text-sm mt-0.5 transition-colors duration-300 text-muted',
-          )}>{desc}</p>
+          <p className="font-medium text-base text-foreground">{label}</p>
+          <p className="text-sm mt-0.5 text-muted">{desc}</p>
         </div>
       </div>
     </motion.button>
@@ -112,14 +129,26 @@ function RadioOption({
 
 export function ContextForm({ onSubmit }: ContextFormProps) {
   const [step, setStep] = useState<Step>('lifeStage');
-  const [direction, setDirection] = useState<1 | -1>(1); // 1 = forward, -1 = back
+  const [direction, setDirection] = useState<1 | -1>(1);
   const [lifeStage, setLifeStage] = useState<LifeStage | null>(null);
+  const [workEnv, setWorkEnv] = useState<WorkEnvironment | null>(null);
   const [structure, setStructure] = useState<'structured' | 'flexible' | 'mixed' | null>(null);
   const [social, setSocial] = useState<'low' | 'medium' | 'high' | null>(null);
+  const [livingSituation, setLivingSituation] = useState<LivingSituation | null>(null);
   const [upbringing, setUpbringing] = useState<UpbringingStyle | null>(null);
+  const [stressLevel, setStressLevel] = useState<StressLevel | null>(null);
   const [mbtiExp, setMbtiExp] = useState<boolean | null>(null);
 
-  const steps: Step[] = ['lifeStage', 'structure', 'social', 'upbringing', 'mbtiExp'];
+  // Dynamic steps: skip workEnv if life stage doesn't have a work environment
+  const steps = useMemo<Step[]>(() => {
+    const base: Step[] = ['lifeStage'];
+    if (lifeStage && WORKING_STAGES.includes(lifeStage)) {
+      base.push('workEnv');
+    }
+    base.push('structure', 'socialAndLiving', 'upbringingAndStress', 'mbtiExp');
+    return base;
+  }, [lifeStage]);
+
   const currentIndex = steps.indexOf(step);
 
   const goToStep = (targetIndex: number) => {
@@ -131,19 +160,23 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
   const canProceed = () => {
     switch (step) {
       case 'lifeStage': return lifeStage !== null;
+      case 'workEnv': return workEnv !== null;
       case 'structure': return structure !== null;
-      case 'social': return social !== null;
-      case 'upbringing': return upbringing !== null;
+      case 'socialAndLiving': return social !== null && livingSituation !== null;
+      case 'upbringingAndStress': return upbringing !== null && stressLevel !== null;
       case 'mbtiExp': return mbtiExp !== null;
     }
   };
 
   const handleNext = () => {
-    if (step === 'mbtiExp' && lifeStage && structure && social && upbringing && mbtiExp !== null) {
+    if (step === 'mbtiExp' && lifeStage && structure && social && livingSituation && upbringing && stressLevel && mbtiExp !== null) {
       onSubmit({
         lifeStage,
+        workEnvironment: workEnv ?? 'na',
         dailyStructure: structure,
         socialExposure: social,
+        livingSituation,
+        stressLevel,
         upbringing,
         previousMBTIExperience: mbtiExp,
         isTypingOther: false,
@@ -152,6 +185,10 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
     }
     const nextIndex = currentIndex + 1;
     if (nextIndex < steps.length) {
+      // When changing life stage, reset workEnv if no longer applicable
+      if (step === 'lifeStage' && lifeStage && !WORKING_STAGES.includes(lifeStage)) {
+        setWorkEnv(null);
+      }
       setDirection(1);
       setStep(steps[nextIndex]);
     }
@@ -159,15 +196,16 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
 
   const stepTitles: Record<Step, string> = {
     lifeStage: 'What best describes your current situation?',
+    workEnv: 'What kind of environment do you work in?',
     structure: 'How structured is your daily life?',
-    social: 'How much social interaction do you have regularly?',
-    upbringing: 'Growing up, the message you got most was:',
+    socialAndLiving: 'Your social life and living situation',
+    upbringingAndStress: 'Your background and current state',
     mbtiExp: 'Have you explored MBTI or cognitive functions before?',
   };
 
   return (
     <div className="w-full max-w-lg mx-auto">
-      {/* Step progress dots — clickable for completed steps */}
+      {/* Step progress dots */}
       <div className="flex items-center justify-center gap-2 mb-8">
         {steps.map((s, i) => {
           const isCompleted = i < currentIndex;
@@ -226,6 +264,18 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
                 />
               ))}
 
+            {step === 'workEnv' &&
+              WORK_ENVIRONMENTS.map((s) => (
+                <RadioOption
+                  key={s.value}
+                  selected={workEnv === s.value}
+                  label={s.label}
+                  desc={s.desc}
+                  icon={s.icon}
+                  onClick={() => setWorkEnv(s.value)}
+                />
+              ))}
+
             {step === 'structure' &&
               STRUCTURES.map((s) => (
                 <RadioOption
@@ -238,29 +288,61 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
                 />
               ))}
 
-            {step === 'social' &&
-              SOCIAL_LEVELS.map((s) => (
-                <RadioOption
-                  key={s.value}
-                  selected={social === s.value}
-                  label={s.label}
-                  desc={s.desc}
-                  icon={s.icon}
-                  onClick={() => setSocial(s.value)}
-                />
-              ))}
+            {step === 'socialAndLiving' && (
+              <>
+                <p className="text-sm font-mono text-muted uppercase tracking-wider mb-2">Social interaction</p>
+                {SOCIAL_LEVELS.map((s) => (
+                  <RadioOption
+                    key={s.value}
+                    selected={social === s.value}
+                    label={s.label}
+                    desc={s.desc}
+                    icon={s.icon}
+                    onClick={() => setSocial(s.value)}
+                  />
+                ))}
+                <div className="border-t border-border my-4" />
+                <p className="text-sm font-mono text-muted uppercase tracking-wider mb-2">Living situation</p>
+                {LIVING_SITUATIONS.map((s) => (
+                  <RadioOption
+                    key={s.value}
+                    selected={livingSituation === s.value}
+                    label={s.label}
+                    desc={s.desc}
+                    icon={s.icon}
+                    onClick={() => setLivingSituation(s.value)}
+                  />
+                ))}
+              </>
+            )}
 
-            {step === 'upbringing' &&
-              UPBRINGING_STYLES.map((s) => (
-                <RadioOption
-                  key={s.value}
-                  selected={upbringing === s.value}
-                  label={s.label}
-                  desc={s.desc}
-                  icon={s.icon}
-                  onClick={() => setUpbringing(s.value)}
-                />
-              ))}
+            {step === 'upbringingAndStress' && (
+              <>
+                <p className="text-sm font-mono text-muted uppercase tracking-wider mb-2">Growing up, the message you got most was</p>
+                {UPBRINGING_STYLES.map((s) => (
+                  <RadioOption
+                    key={s.value}
+                    selected={upbringing === s.value}
+                    label={s.label}
+                    desc={s.desc}
+                    icon={s.icon}
+                    onClick={() => setUpbringing(s.value)}
+                  />
+                ))}
+                <div className="border-t border-border my-4" />
+                <p className="text-sm font-mono text-muted uppercase tracking-wider mb-2">How stressed are you right now?</p>
+                {STRESS_LEVELS.map((s) => (
+                  <RadioOption
+                    key={s.value}
+                    selected={stressLevel === s.value}
+                    label={s.label}
+                    desc={s.desc}
+                    icon={s.icon}
+                    onClick={() => setStressLevel(s.value)}
+                  />
+                ))}
+              </>
+            )}
 
             {step === 'mbtiExp' && (
               <>

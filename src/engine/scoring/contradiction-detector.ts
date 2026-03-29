@@ -49,7 +49,7 @@ export function detectContradictions(
       contradictions.push({
         questionId1: question.id,
         questionId2: question.redundancyOf,
-        description: `Answered toward ${fn1} on one question but ${fn2} on a similar question`,
+        description: `You picked ${fn1} on one question but then chose ${fn2} on a very similar question`,
         severity: 'medium',
         affectedFunctions: [fn1, fn2],
       });

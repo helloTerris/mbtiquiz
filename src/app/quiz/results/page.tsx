@@ -12,6 +12,7 @@ import { ExplanationPanel } from '@/components/results/ExplanationPanel';
 import { TrueSelfComparison } from '@/components/results/TrueSelfComparison';
 import { BiasIndicators } from '@/components/results/BiasIndicators';
 import { LoopStateCard } from '@/components/results/LoopStateCard';
+import { StackBreakdown } from '@/components/results/StackBreakdown';
 import { Button } from '@/components/ui/Button';
 import { useQuizStore } from '@/stores/quiz-store';
 import { useContextStore } from '@/stores/context-store';
@@ -152,11 +153,20 @@ export default function ResultsPage() {
           />
         </motion.div>
 
+        {/* Stack breakdown — all 4 positions explained */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+        >
+          <StackBreakdown stack={result.primaryType.stack} />
+        </motion.div>
+
         {/* Alternative types */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.65 }}
         >
           <AlternativeTypes alternatives={result.alternativeTypes} />
         </motion.div>
@@ -232,23 +242,24 @@ export default function ResultsPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.95 }}
-          className="flex flex-col sm:flex-row gap-3 justify-center pt-4 pb-8"
+          className="flex flex-col items-center gap-3 pt-4 pb-8"
         >
-          <div className="flex flex-col items-center gap-1">
-            <Button
-              variant="primary"
-              disabled={!hasAdaptiveQuestions}
-              onClick={() => router.push('/quiz/refine')}
-            >
-              Improve My Results
-            </Button>
-            {!hasAdaptiveQuestions && (
-              <p className="text-xs text-muted">Your scores are already clear — no close calls to refine.</p>
+          <div className="flex flex-row gap-3">
+            {hasAdaptiveQuestions && (
+              <Button
+                variant="primary"
+                onClick={() => router.push('/quiz/refine')}
+              >
+                Improve My Results
+              </Button>
             )}
+            <Button variant="secondary" onClick={handleRetake}>
+              Retake Test
+            </Button>
           </div>
-          <Button variant="secondary" onClick={handleRetake}>
-            Retake Test
-          </Button>
+          {!hasAdaptiveQuestions && (
+            <p className="text-xs text-muted">Your scores are already clear — no close calls to refine.</p>
+          )}
         </motion.div>
       </div>
     </main>

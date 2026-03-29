@@ -57,9 +57,9 @@ function interpretDivergence(
   const gap = adapted - natural;
 
   if (gap > 0) {
-    return `Your environment may be pushing you toward more ${label} (${fn}) than is natural for you. This could come from workplace demands, social expectations, or role requirements.`;
+    return `Your daily life (work, school, or social circle) seems to be pushing you to use ${label} more than you naturally would. The "real you" might not lean on it as much.`;
   }
-  return `You may naturally rely on ${label} (${fn}) more than your environment allows you to express. This function might feel suppressed by current circumstances.`;
+  return `You naturally use ${label} more than your daily life lets you show. It might feel like this part of you is being held back by your current situation.`;
 }
 
 export function analyzeTrueSelf(

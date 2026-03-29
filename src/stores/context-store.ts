@@ -19,6 +19,17 @@ export const useContextStore = create<ContextState>()(
     }),
     {
       name: 'cognitivtype-context',
+      version: 2,
+      migrate: (persisted: unknown, version: number) => {
+        const state = persisted as { context: Record<string, unknown> | null };
+        if (version < 2 && state?.context) {
+          // Add defaults for new fields introduced in v2
+          state.context.workEnvironment = state.context.workEnvironment ?? 'na';
+          state.context.livingSituation = state.context.livingSituation ?? 'partner-family';
+          state.context.stressLevel = state.context.stressLevel ?? 'moderate';
+        }
+        return state as ContextState;
+      },
     }
   )
 );

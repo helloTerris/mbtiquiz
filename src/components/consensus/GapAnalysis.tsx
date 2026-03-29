@@ -16,7 +16,7 @@ export function GapAnalysis({ gaps, selfScores, othersScores }: GapAnalysisProps
     return (
       <div className="glass rounded-2xl p-6 text-center">
         <p className="text-sm text-muted">
-          Self-perception and others' perception are closely aligned. No significant gaps detected.
+          How you see yourself matches how others see you pretty well. No big differences found.
         </p>
       </div>
     );
@@ -25,10 +25,10 @@ export function GapAnalysis({ gaps, selfScores, othersScores }: GapAnalysisProps
   return (
     <div className="glass rounded-2xl p-6">
       <h3 className="text-sm font-mono text-muted uppercase tracking-[0.1em] mb-4">
-        Perception Gaps
+        How others see you differently
       </h3>
       <p className="text-sm text-muted mb-5">
-        Where others see you differently than you see yourself.
+        These are the areas where your friends' answers didn't match your own.
       </p>
 
       <div className="space-y-4">
@@ -57,7 +57,7 @@ export function GapAnalysis({ gaps, selfScores, othersScores }: GapAnalysisProps
             {/* Dual bars */}
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted w-12">Self</span>
+                <span className="text-sm text-muted w-12">You</span>
                 <div className="flex-1 h-1.5 rounded-full bg-surface overflow-hidden">
                   <motion.div
                     className="h-full rounded-full"
@@ -72,7 +72,7 @@ export function GapAnalysis({ gaps, selfScores, othersScores }: GapAnalysisProps
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted w-12">Others</span>
+                <span className="text-sm text-muted w-12">Friends</span>
                 <div className="flex-1 h-1.5 rounded-full bg-surface overflow-hidden">
                   <motion.div
                     className="h-full rounded-full opacity-60"
