@@ -399,66 +399,68 @@ export const CORE_QUESTIONS: Question[] = [
     weight: 1.1,
   },
 
-  // Q8: Si vs Se — stress-response
+  // Q8: Si vs Se — default-vs-forced
   {
     id: 'c1-08',
     primaryAxis: ['Si', 'Se'],
-    category: 'stress-response',
-    text: 'When you\'re overwhelmed, you tend to:',
+    category: 'default-vs-forced',
+    text: 'On a lazy weekend with zero plans, you\'re drawn to:',
     options: [
       {
-        id: 'c1-08-a',
-        text: 'Go back to your comfort zone — familiar places, routines, and things that feel safe.',
+        id: 'c1-08-a2',
+        text: 'Revisiting something comforting — rewatching a favorite movie, going to a spot you love, or cooking a familiar recipe.',
         functionWeights: { Si: 2 },
       },
       {
-        id: 'c1-08-b',
-        text: 'Do something physical — exercise, go out, or stay busy with your hands to feel grounded.',
+        id: 'c1-08-b2',
+        text: 'Seeking out something new — a restaurant you haven\'t tried, a random road trip, or whatever catches your eye.',
         functionWeights: { Se: 2 },
       },
     ],
+    isDefaultVsForced: true,
     chunk: 1,
-    weight: 1.0,
+    weight: 1.2,
   },
 
-  // Q9: Ti vs Te — social-interaction
+  // Q9: Ni vs Ne — default-vs-forced
   {
     id: 'c1-09',
-    primaryAxis: ['Ti', 'Te'],
-    category: 'social-interaction',
-    text: 'When someone asks you to explain your reasoning, you:',
+    primaryAxis: ['Ni', 'Ne'],
+    category: 'default-vs-forced',
+    text: 'When you\'re daydreaming with nothing to do, your mind tends to:',
     options: [
       {
-        id: 'c1-09-a',
-        text: 'Struggle to put it into words — it all makes sense in your head, but it\'s hard to lay it out step by step for someone else.',
-        functionWeights: { Ti: 2 },
+        id: 'c1-09-a2',
+        text: 'Zero in on one idea and go deeper and deeper — you follow a single thread until something clicks.',
+        functionWeights: { Ni: 2 },
       },
       {
-        id: 'c1-09-b',
-        text: 'Lay it out clearly, step by step — you\'re naturally good at organizing your thoughts so others can follow.',
-        functionWeights: { Te: 2 },
+        id: 'c1-09-b2',
+        text: 'Bounce between tons of ideas — one thought leads to another and you end up somewhere totally unexpected.',
+        functionWeights: { Ne: 2 },
       },
     ],
+    isDefaultVsForced: true,
     chunk: 1,
-    weight: 1.0,
+    weight: 1.2,
   },
 
-  // Q10: Fi vs Fe — inner-world
+  // Q10: Si vs Se — social-interaction
   {
     id: 'c1-10',
-    primaryAxis: ['Fi', 'Fe'],
-    category: 'inner-world',
-    text: 'Your emotions are more like:',
+    primaryAxis: ['Si', 'Se'],
+    category: 'social-interaction',
+    text: 'When you meet up with close friends, you\'d rather:',
     options: [
       {
         id: 'c1-10-a',
-        text: 'Deep and private — you feel things strongly but rarely show it all on the outside.',
-        functionWeights: { Fi: 2 },
+        text: 'Go somewhere you all know and love — the familiar spot has history and that\'s what makes it special.',
+        functionWeights: { Si: 2 },
       },
       {
         id: 'c1-10-b',
-        text: 'Open and reactive — you naturally pick up on and match the mood around you.',
-        functionWeights: { Fe: 2 },
+        text: 'Try somewhere none of you have been — half the fun is the new experience and seeing how everyone reacts.',
+        functionWeights: { Se: 2 },
       },
     ],
     chunk: 1,
@@ -831,27 +833,27 @@ export const CORE_QUESTIONS: Question[] = [
     weight: 1.0,
   },
 
-  // Q17: Fi vs Fe — default-vs-forced
+  // Q17: Ni vs Ne — social-interaction (redundancy of c1-03)
   {
     id: 'c2-07',
-    primaryAxis: ['Fi', 'Fe'],
-    category: 'default-vs-forced',
-    text: 'When nobody\'s watching and there are zero consequences, your choices are based more on:',
+    primaryAxis: ['Ni', 'Ne'],
+    category: 'social-interaction',
+    text: 'In a group conversation that goes off on a tangent, you:',
     options: [
       {
         id: 'c2-07-a',
-        text: 'Your own sense of right and wrong — a gut feeling about what\'s moral that doesn\'t change based on who\'s around.',
-        functionWeights: { Fi: 2 },
+        text: 'Try to steer it back to the point — you can see where this should be heading and the tangent is noise.',
+        functionWeights: { Ni: 2 },
       },
       {
         id: 'c2-07-b',
-        text: 'What would make people happy — you naturally think about how your choices affect others, even when no one\'s looking.',
-        functionWeights: { Fe: 2 },
+        text: 'Love it — the tangent is where the interesting stuff happens, and you\'re already connecting it to three other ideas.',
+        functionWeights: { Ne: 2 },
       },
     ],
-    isDefaultVsForced: true,
+    redundancyOf: 'c1-03',
     chunk: 2,
-    weight: 1.2,
+    weight: 0.85,
   },
 
   // Q18: Ni vs Ne — work-style
@@ -1285,49 +1287,50 @@ export const CORE_QUESTIONS: Question[] = [
     weight: 1.0,
   },
 
-  // Q27: Ti vs Te — inner-world
+  // Q27: Ti vs Te — default-vs-forced
   {
     id: 'c3-07',
     primaryAxis: ['Ti', 'Te'],
-    category: 'inner-world',
-    text: 'When it comes to learning and knowledge:',
+    category: 'default-vs-forced',
+    text: 'Imagine you suddenly have a month off with nothing to do. You\'d probably spend it:',
     options: [
       {
-        id: 'c3-07-a',
-        text: 'You want to understand things deeply — you\'d rather master one topic than know a little about a lot.',
+        id: 'c3-07-a2',
+        text: 'Going deep on something you\'ve always wanted to understand — picking apart how things work just for the satisfaction of knowing.',
         functionWeights: { Ti: 2 },
       },
       {
-        id: 'c3-07-b',
-        text: 'You want knowledge you can actually use — understanding something only matters if it helps you get results.',
+        id: 'c3-07-b2',
+        text: 'Getting stuff done you\'ve been putting off — building something, organizing your life, producing something tangible.',
         functionWeights: { Te: 2 },
       },
     ],
+    isDefaultVsForced: true,
     chunk: 3,
-    weight: 1.1,
+    weight: 1.2,
   },
 
-  // Q28: Ni vs Ne — social-interaction (redundancy of Q3)
+  // Q28: Fi vs Fe — default-vs-forced
   {
     id: 'c3-08',
-    primaryAxis: ['Ni', 'Ne'],
-    category: 'social-interaction',
-    text: 'In conversations, people would say you tend to:',
+    primaryAxis: ['Fi', 'Fe'],
+    category: 'default-vs-forced',
+    text: 'If you could live however you wanted with no pressure from anyone — no expectations from family, friends, or society:',
     options: [
       {
-        id: 'c3-08-a',
-        text: 'Go deep — you stick with one topic and dig into it until you get to the bottom of it.',
-        functionWeights: { Ni: 2 },
+        id: 'c3-08-a2',
+        text: 'You\'d follow your own values completely, even if your life looked weird to everyone else. Being true to yourself is the point.',
+        functionWeights: { Fi: 2 },
       },
       {
-        id: 'c3-08-b',
-        text: 'Go wide — you jump from topic to topic, constantly making connections between different ideas.',
-        functionWeights: { Ne: 2 },
+        id: 'c3-08-b2',
+        text: 'You\'d still want to be part of a community and make people around you feel good. Connection is what gives life meaning.',
+        functionWeights: { Fe: 2 },
       },
     ],
-    redundancyOf: 'c1-03',
+    isDefaultVsForced: true,
     chunk: 3,
-    weight: 0.8,
+    weight: 1.2,
   },
 
   // Q29: Si vs Se — inner-world (redundancy of Q4)
@@ -1740,26 +1743,27 @@ export const CORE_QUESTIONS: Question[] = [
     weight: 1.0,
   },
 
-  // Q37: Consistency check — logic vs values (redundancy of Q1/Q6 cross-check)
+  // Q37: Ni vs Ne — default-vs-forced
   {
     id: 'c4-07',
-    primaryAxis: ['Ti', 'Fi'],
-    category: 'decision-making',
-    text: 'When your head says one thing and your heart says another, you usually go with:',
+    primaryAxis: ['Ni', 'Ne'],
+    category: 'default-vs-forced',
+    text: 'When you\'re completely free to think about anything — no task, no problem to solve — your brain naturally:',
     options: [
       {
-        id: 'c4-07-a',
-        text: 'Your head — even if it doesn\'t feel great, you trust what makes logical sense over what just feels right.',
-        functionWeights: { Ti: 2 },
+        id: 'c4-07-a2',
+        text: 'Keeps circling back to one big question or vision — you\'re always trying to see it more clearly.',
+        functionWeights: { Ni: 2 },
       },
       {
-        id: 'c4-07-b',
-        text: 'Your heart — even if the logic says otherwise, some things are just non-negotiable for you.',
-        functionWeights: { Fi: 2 },
+        id: 'c4-07-b2',
+        text: 'Keeps generating new ideas and connections — you can\'t stop jumping to the next "what if?"',
+        functionWeights: { Ne: 2 },
       },
     ],
+    isDefaultVsForced: true,
     chunk: 4,
-    weight: 1.0,
+    weight: 1.2,
   },
 
   // Q38: Structure vs freedom (Te/Si vs Ne/Se indicator)
