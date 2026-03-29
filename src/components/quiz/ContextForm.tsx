@@ -26,6 +26,23 @@ const LIFE_STAGES: { value: LifeStage; label: string; desc: string; icon: string
   { value: 'other', label: 'Other', desc: 'None of these fit', icon: '\u{2728}' },
 ];
 
+const LIFE_STAGE_DETAIL_PLACEHOLDERS: Partial<Record<LifeStage, string>> = {
+  student: 'e.g., biology major, trade school',
+  'early-career': 'e.g., junior developer, first-year teacher',
+  'mid-career': 'e.g., project manager, senior nurse',
+  freelance: 'e.g., web designer, freelance writer',
+  caregiver: 'e.g., stay-at-home parent, elder care',
+  other: 'e.g., gap year, volunteer work',
+};
+
+const WORK_ENV_DETAIL_PLACEHOLDERS: Partial<Record<WorkEnvironment, string>> = {
+  corporate: 'e.g., finance department, HR team',
+  startup: 'e.g., SaaS startup, food tech',
+  creative: 'e.g., UX design agency, music production',
+  service: 'e.g., hospital nursing, elementary school',
+  technical: 'e.g., data science team, mechanical engineering',
+};
+
 const WORK_ENVIRONMENTS: { value: WorkEnvironment; label: string; desc: string; icon: string }[] = [
   { value: 'corporate', label: 'Corporate / Office', desc: 'Large org, clear chain of command', icon: '\u{1F3E2}' },
   { value: 'startup', label: 'Startup / Small Team', desc: 'Fast-paced, wearing many hats', icon: '\u{26A1}' },
@@ -131,7 +148,9 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
   const [step, setStep] = useState<Step>('lifeStage');
   const [direction, setDirection] = useState<1 | -1>(1);
   const [lifeStage, setLifeStage] = useState<LifeStage | null>(null);
+  const [lifeStageDetail, setLifeStageDetail] = useState('');
   const [workEnv, setWorkEnv] = useState<WorkEnvironment | null>(null);
+  const [workEnvDetail, setWorkEnvDetail] = useState('');
   const [structure, setStructure] = useState<'structured' | 'flexible' | 'mixed' | null>(null);
   const [social, setSocial] = useState<'low' | 'medium' | 'high' | null>(null);
   const [livingSituation, setLivingSituation] = useState<LivingSituation | null>(null);
@@ -172,7 +191,9 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
     if (step === 'mbtiExp' && lifeStage && structure && social && livingSituation && upbringing && stressLevel && mbtiExp !== null) {
       onSubmit({
         lifeStage,
+        lifeStageDetail: lifeStageDetail.trim() || undefined,
         workEnvironment: workEnv ?? 'na',
+        workEnvironmentDetail: workEnvDetail.trim() || undefined,
         dailyStructure: structure,
         socialExposure: social,
         livingSituation,
@@ -252,29 +273,79 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
           </h2>
 
           <div className="space-y-3">
-            {step === 'lifeStage' &&
-              LIFE_STAGES.map((s) => (
-                <RadioOption
-                  key={s.value}
-                  selected={lifeStage === s.value}
-                  label={s.label}
-                  desc={s.desc}
-                  icon={s.icon}
-                  onClick={() => setLifeStage(s.value)}
-                />
-              ))}
+            {step === 'lifeStage' && (
+              <>
+                {LIFE_STAGES.map((s) => (
+                  <RadioOption
+                    key={s.value}
+                    selected={lifeStage === s.value}
+                    label={s.label}
+                    desc={s.desc}
+                    icon={s.icon}
+                    onClick={() => setLifeStage(s.value)}
+                  />
+                ))}
+                <AnimatePresence>
+                  {lifeStage && LIFE_STAGE_DETAIL_PLACEHOLDERS[lifeStage] && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <label className="block text-sm text-muted mt-4 mb-2">
+                        Tell us more <span className="text-muted/50">(optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={lifeStageDetail}
+                        onChange={(e) => setLifeStageDetail(e.target.value.slice(0, 60))}
+                        placeholder={LIFE_STAGE_DETAIL_PLACEHOLDERS[lifeStage]}
+                        className="w-full bg-glass border border-glass-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted/50 focus:outline-none focus:border-accent/50 focus:shadow-[0_0_12px_rgba(124,106,239,0.2)] transition-all duration-300"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
+            )}
 
-            {step === 'workEnv' &&
-              WORK_ENVIRONMENTS.map((s) => (
-                <RadioOption
-                  key={s.value}
-                  selected={workEnv === s.value}
-                  label={s.label}
-                  desc={s.desc}
-                  icon={s.icon}
-                  onClick={() => setWorkEnv(s.value)}
-                />
-              ))}
+            {step === 'workEnv' && (
+              <>
+                {WORK_ENVIRONMENTS.map((s) => (
+                  <RadioOption
+                    key={s.value}
+                    selected={workEnv === s.value}
+                    label={s.label}
+                    desc={s.desc}
+                    icon={s.icon}
+                    onClick={() => setWorkEnv(s.value)}
+                  />
+                ))}
+                <AnimatePresence>
+                  {workEnv && WORK_ENV_DETAIL_PLACEHOLDERS[workEnv] && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <label className="block text-sm text-muted mt-4 mb-2">
+                        What specifically? <span className="text-muted/50">(optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={workEnvDetail}
+                        onChange={(e) => setWorkEnvDetail(e.target.value.slice(0, 60))}
+                        placeholder={WORK_ENV_DETAIL_PLACEHOLDERS[workEnv]}
+                        className="w-full bg-glass border border-glass-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted/50 focus:outline-none focus:border-accent/50 focus:shadow-[0_0_12px_rgba(124,106,239,0.2)] transition-all duration-300"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
+            )}
 
             {step === 'structure' &&
               STRUCTURES.map((s) => (

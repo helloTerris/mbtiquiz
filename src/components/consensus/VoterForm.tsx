@@ -20,7 +20,7 @@ function getVoterQuestions(): Question[] {
   // Pick 15 representative questions: 3-4 per axis
   const selectedIds = [
     'c1-01', 'c1-02', 'c1-03', 'c1-04',   // Core axes
-    'c1-09', 'c1-10',                        // Ti/Te social, Fi/Fe inner
+    'c1-09', 'c1-10',                        // Ni/Ne default, Fi/Fe inner
     'c2-03', 'c2-04',                        // Scenario Fi/Fe, Ni/Si
     'c2-08', 'c2-09',                        // Ni/Ne work, Si/Se work
     'c3-05', 'c3-06',                        // Ni/Ne decision, Si/Se decision

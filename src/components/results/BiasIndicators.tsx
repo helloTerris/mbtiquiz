@@ -13,6 +13,9 @@ const BIAS_ICONS: Record<BiasIndicator['type'], string> = {
   'environment-pressure': '\u{1F3E2}',
   'social-desirability': '\u{2728}',
   'stress-state': '\u{1F525}',
+  'upbringing-conditioning': '\u{1F331}',
+  'social-exposure-mismatch': '\u{1F504}',
+  'life-stage-pressure': '\u{231B}',
 };
 
 const BIAS_TITLES: Record<BiasIndicator['type'], string> = {
@@ -20,10 +23,19 @@ const BIAS_TITLES: Record<BiasIndicator['type'], string> = {
   'environment-pressure': 'Shaped by your environment',
   'social-desirability': 'Picking the "cool" answer',
   'stress-state': 'Under stress right now',
+  'upbringing-conditioning': 'Shaped by how you were raised',
+  'social-exposure-mismatch': 'Social life vs. answers don\'t match',
+  'life-stage-pressure': 'Your current life stage may be talking',
 };
+
+const MAX_DISPLAYED_INDICATORS = 4;
 
 export function BiasIndicators({ indicators }: BiasIndicatorsProps) {
   if (indicators.length === 0) return null;
+
+  // Show top indicators by magnitude, capped to avoid overwhelming the user
+  const sorted = [...indicators].sort((a, b) => b.magnitude - a.magnitude);
+  const displayed = sorted.slice(0, MAX_DISPLAYED_INDICATORS);
 
   return (
     <div className="glass rounded-2xl p-6 border border-violet-500/15">
@@ -35,7 +47,7 @@ export function BiasIndicators({ indicators }: BiasIndicatorsProps) {
       </p>
 
       <div className="space-y-3">
-        {indicators.map((indicator, i) => (
+        {displayed.map((indicator, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, x: -10 }}

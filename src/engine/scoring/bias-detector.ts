@@ -18,6 +18,38 @@ const DESIRABILITY_THRESHOLD = 75; // Score above this triggers flag
 const STRUCTURED_ENV_FUNCTIONS: CognitiveFunction[] = ['Te', 'Si'];
 const FLEXIBLE_ENV_FUNCTIONS: CognitiveFunction[] = ['Ne', 'Se'];
 
+// Upbringing conditioning associations
+const TOUGH_UPBRINGING_FUNCTIONS: CognitiveFunction[] = ['Te', 'Ti'];
+const KIND_UPBRINGING_FUNCTIONS: CognitiveFunction[] = ['Fe', 'Fi'];
+
+// Social exposure mismatch associations
+const HIGH_SOCIAL_FUNCTIONS: CognitiveFunction[] = ['Fe', 'Ne'];
+const LOW_SOCIAL_FUNCTIONS: CognitiveFunction[] = ['Fi', 'Ti'];
+
+/**
+ * Score only the default-vs-forced answers to see which functions
+ * the user favors when environmental pressure is stripped away.
+ */
+function scoreDefaultAnswers(
+  answers: Answer[],
+  questions: Question[]
+): Partial<Record<CognitiveFunction, number>> {
+  const defaultQs = questions.filter(q => q.isDefaultVsForced);
+  const hits: Partial<Record<CognitiveFunction, number>> = {};
+
+  for (const answer of answers) {
+    const q = defaultQs.find(dq => dq.id === answer.questionId);
+    if (!q) continue;
+    const opt = q.options.find(o => o.id === answer.selectedOptionId);
+    if (!opt) continue;
+    for (const [fn, w] of Object.entries(opt.functionWeights)) {
+      hits[fn as CognitiveFunction] = (hits[fn as CognitiveFunction] || 0) + (w as number);
+    }
+  }
+
+  return hits;
+}
+
 export function detectBias(
   answers: Answer[],
   questions: Question[],
@@ -44,7 +76,9 @@ export function detectBias(
     }
   }
 
-  // 2. Environment pressure bias
+  // 2. Environment pressure bias (with default-vs-forced cross-referencing)
+  const defaultHits = scoreDefaultAnswers(answers, questions);
+
   if (context) {
     if (context.dailyStructure === 'structured') {
       const inflatedStructured = STRUCTURED_ENV_FUNCTIONS.filter(
@@ -52,22 +86,18 @@ export function detectBias(
       );
 
       if (inflatedStructured.length > 0) {
-        // Check if default-vs-forced questions tell a different story
-        const defaultQs = questions.filter(q => q.isDefaultVsForced);
-        const defaultAnswers = answers.filter(a =>
-          defaultQs.some(q => q.id === a.questionId)
-        );
+        // Cross-reference: do default-vs-forced answers contradict?
+        const defaultContradict = inflatedStructured.some(fn => (defaultHits[fn] || 0) < 2);
+        const magnitude = defaultContradict ? 0.5 : 0.3;
 
-        // If they have default-vs-forced answers that contradict, flag it
-        if (defaultAnswers.length >= 2) {
-          indicators.push({
-            type: 'environment-pressure',
-            description:
-              `You live or work in a pretty structured setting, which might be boosting your ${inflatedStructured.join('/')} scores. The way you act at work might not be the same as the "real you" at home.`,
-            affectedFunctions: inflatedStructured,
-            magnitude: 0.3,
-          });
-        }
+        indicators.push({
+          type: 'environment-pressure',
+          description: defaultContradict
+            ? `Your structured environment seems to be significantly boosting your ${inflatedStructured.join('/')} scores. When we looked at your "no-pressure" answers, they tell a different story — the real you might not lean on these as much.`
+            : `You live or work in a pretty structured setting, which might be boosting your ${inflatedStructured.join('/')} scores. The way you act at work might not be the same as the "real you" at home.`,
+          affectedFunctions: inflatedStructured,
+          magnitude,
+        });
       }
     }
 
@@ -77,12 +107,16 @@ export function detectBias(
       );
 
       if (inflatedFlexible.length > 0) {
+        const defaultContradict = inflatedFlexible.some(fn => (defaultHits[fn] || 0) < 2);
+        const magnitude = defaultContradict ? 0.45 : 0.25;
+
         indicators.push({
           type: 'environment-pressure',
-          description:
-            `Your free and flexible lifestyle might be boosting your ${inflatedFlexible.join('/')} scores. You might act differently if you had a more structured routine.`,
+          description: defaultContradict
+            ? `Your flexible lifestyle seems to be significantly boosting your ${inflatedFlexible.join('/')} scores. Your "no-pressure" answers suggest you might not actually prefer these as much as your daily habits show.`
+            : `Your free and flexible lifestyle might be boosting your ${inflatedFlexible.join('/')} scores. You might act differently if you had a more structured routine.`,
           affectedFunctions: inflatedFlexible,
-          magnitude: 0.25,
+          magnitude,
         });
       }
     }
@@ -157,6 +191,108 @@ export function detectBias(
       affectedFunctions: skewedToward === 'introverted' ? introFns : extroFns,
       magnitude: Math.min(0.7, attitudeSkew / 50),
     });
+  }
+
+  // 7. Upbringing conditioning bias
+  if (context?.upbringing && context.upbringing !== 'balanced') {
+    const targetFns = context.upbringing === 'be-tough'
+      ? TOUGH_UPBRINGING_FUNCTIONS
+      : KIND_UPBRINGING_FUNCTIONS;
+    const label = context.upbringing === 'be-tough' ? 'logic and toughness' : 'caring and harmony';
+
+    const inflated = targetFns.filter(
+      fn => normalizedScores.globalNormalized[fn] >= 65
+    );
+
+    if (inflated.length > 0) {
+      indicators.push({
+        type: 'upbringing-conditioning',
+        description:
+          `You grew up with a "${context.upbringing === 'be-tough' ? 'be tough' : 'be kind'}" message, and your ${inflated.join('/')} scores are high. That upbringing might have trained you to value ${label} — it could be genuinely you, or it could be conditioning you absorbed growing up.`,
+        affectedFunctions: inflated,
+        magnitude: 0.3 + (inflated.length - 1) * 0.1,
+      });
+    }
+  }
+
+  // 8. Social exposure mismatch
+  if (context?.socialExposure) {
+    if (context.socialExposure === 'low') {
+      const mismatched = HIGH_SOCIAL_FUNCTIONS.filter(
+        fn => normalizedScores.globalNormalized[fn] >= 70
+      );
+      if (mismatched.length > 0) {
+        indicators.push({
+          type: 'social-exposure-mismatch',
+          description:
+            `You said you don't interact with people much, but you scored high on ${mismatched.join('/')}. This could be a genuine natural gift, or it might reflect how you wish you were in social situations rather than how you actually act.`,
+          affectedFunctions: mismatched,
+          magnitude: 0.35,
+        });
+      }
+    }
+
+    if (context.socialExposure === 'high') {
+      const mismatched = LOW_SOCIAL_FUNCTIONS.filter(
+        fn => normalizedScores.globalNormalized[fn] >= 70
+      );
+      if (mismatched.length > 0) {
+        indicators.push({
+          type: 'social-exposure-mismatch',
+          description:
+            `You're constantly around people but scored high on ${mismatched.join('/')}. This could be genuinely you (introverts can have very social lives), or your answers might reflect wanting more alone time than you actually get.`,
+          affectedFunctions: mismatched,
+          magnitude: 0.25,
+        });
+      }
+    }
+  }
+
+  // 9. Life stage pressure bias
+  if (context?.lifeStage) {
+    if (context.lifeStage === 'caregiver') {
+      const inflated = (['Fe', 'Si'] as CognitiveFunction[]).filter(
+        fn => normalizedScores.globalNormalized[fn] >= 65
+      );
+      if (inflated.length > 0) {
+        indicators.push({
+          type: 'life-stage-pressure',
+          description:
+            `Being a caregiver demands a lot of emotional attunement and routine management. Your high ${inflated.join('/')} scores might reflect what your role requires rather than your natural wiring.`,
+          affectedFunctions: inflated,
+          magnitude: 0.3,
+        });
+      }
+    }
+
+    if (context.lifeStage === 'student') {
+      if (normalizedScores.globalNormalized['Ne'] >= 65) {
+        indicators.push({
+          type: 'life-stage-pressure',
+          description:
+            'Being a student means your life is full of new ideas, exploration, and possibilities. Your high idea-exploring score might partly reflect your current environment rather than a lifelong pattern.',
+          affectedFunctions: ['Ne'],
+          magnitude: 0.25,
+        });
+      }
+    }
+
+    if (context.lifeStage === 'between-jobs' && context.stressLevel === 'high') {
+      // Under stress, inferior function can temporarily spike
+      const bottomTwo = normalizedScores.rankings.slice(-2);
+      const spiking = bottomTwo.filter(fn =>
+        normalizedScores.globalNormalized[fn] >= 60
+      );
+      if (spiking.length > 0) {
+        indicators.push({
+          type: 'life-stage-pressure',
+          description:
+            'Being between jobs under high stress can trigger unusual behavior — using thinking styles you don\'t normally rely on. Some of your answers might reflect this temporary stress response rather than your baseline personality.',
+          affectedFunctions: spiking,
+          magnitude: 0.4,
+        });
+      }
+    }
   }
 
   return indicators;

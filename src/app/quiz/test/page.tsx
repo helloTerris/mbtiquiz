@@ -1,23 +1,27 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { ForcedChoice } from '@/components/quiz/ForcedChoice';
+import { MidQuizCheckIn } from '@/components/quiz/MidQuizCheckIn';
 import { LiveFunctionBars } from '@/components/live/LiveFunctionBars';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useQuizStore } from '@/stores/quiz-store';
 import { useContextStore } from '@/stores/context-store';
 import { useHydration } from '@/hooks/useHydration';
-import { CORE_QUESTIONS, getQuestionsByChunk } from '@/engine/questions/question-bank';
-import { adaptQuestion } from '@/engine/questions/context-adapter';
+import { CORE_QUESTIONS } from '@/engine/questions/question-bank';
+import { usePersonalizedQuestions, prefetchChunk } from '@/hooks/usePersonalizedQuestions';
 import { shouldTriggerAdaptive } from '@/engine/questions/question-selector';
 import type { Answer } from '@/types/questions';
 import { QUESTIONS_PER_CHUNK, TOTAL_CHUNKS, getAmbiguityThreshold } from '@/lib/constants';
 
+const CHECK_IN_AFTER_CHUNK = 2; // Show check-in after completing chunk 2 (halfway)
+
 export default function TestPage() {
   const router = useRouter();
   const hydrated = useHydration();
+  const [showCheckIn, setShowCheckIn] = useState(false);
 
   const {
     currentChunk,
@@ -34,12 +38,15 @@ export default function TestPage() {
 
   const context = useContextStore((s) => s.context);
 
-  // Get current chunk's questions
-  const chunkQuestions = useMemo(() => {
-    const questions = getQuestionsByChunk(currentChunk);
-    if (!context) return questions;
-    return questions.map((q) => adaptQuestion(q, context));
-  }, [currentChunk, context]);
+  // Get current chunk's questions (AI personalized → static variant → base)
+  const { questions: chunkQuestions } = usePersonalizedQuestions(currentChunk);
+
+  // Pre-fetch next chunk while user answers current chunk
+  useEffect(() => {
+    if (currentChunk < TOTAL_CHUNKS) {
+      prefetchChunk(currentChunk + 1);
+    }
+  }, [currentChunk]);
 
   const currentQuestion = chunkQuestions[currentQuestionIndex];
 
@@ -67,6 +74,9 @@ export default function TestPage() {
             setPhase('results');
             router.push('/quiz/results');
           }
+        } else if (currentChunk === CHECK_IN_AFTER_CHUNK) {
+          // Show mid-quiz check-in after chunk 2
+          setShowCheckIn(true);
         } else {
           nextChunk();
         }
@@ -86,14 +96,32 @@ export default function TestPage() {
       setPhase,
       setAdaptiveNeeded,
       router,
+      context?.lifeStage,
     ]
   );
+
+  const handleCheckInContinue = useCallback(() => {
+    setShowCheckIn(false);
+    nextChunk();
+  }, [nextChunk]);
 
   if (!hydrated) {
     return (
       <main className="flex-1 flex items-center justify-center">
         <div className="text-muted">Loading...</div>
       </main>
+    );
+  }
+
+  // Mid-quiz check-in screen
+  if (showCheckIn && normalizedScores) {
+    return (
+      <MidQuizCheckIn
+        normalizedScores={normalizedScores}
+        totalAnswered={totalAnswered}
+        totalQuestions={totalQuestions}
+        onContinue={handleCheckInContinue}
+      />
     );
   }
 

@@ -24,7 +24,9 @@ export type UpbringingStyle = 'be-tough' | 'be-kind' | 'balanced';
 
 export interface UserContext {
   lifeStage: LifeStage;
+  lifeStageDetail?: string;
   workEnvironment: WorkEnvironment;
+  workEnvironmentDetail?: string;
   dailyStructure: 'structured' | 'flexible' | 'mixed';
   socialExposure: 'low' | 'medium' | 'high';
   livingSituation: LivingSituation;

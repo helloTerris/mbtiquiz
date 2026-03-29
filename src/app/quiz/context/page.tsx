@@ -1,25 +1,53 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ContextForm } from '@/components/quiz/ContextForm';
+import { PersonalizingOverlay } from '@/components/quiz/PersonalizingOverlay';
 import { useContextStore } from '@/stores/context-store';
 import { useQuizStore } from '@/stores/quiz-store';
+import { useAIQuestionsStore } from '@/stores/ai-questions-store';
+import { fetchPersonalizedChunk } from '@/lib/personalize';
 import type { UserContext } from '@/types/context';
 
 export default function ContextPage() {
   const router = useRouter();
   const setContext = useContextStore((s) => s.setContext);
   const setPhase = useQuizStore((s) => s.setPhase);
+  const [isPersonalizing, setIsPersonalizing] = useState(false);
 
-  const handleSubmit = (context: UserContext) => {
+  const handleSubmit = async (context: UserContext) => {
     setContext(context);
+    setIsPersonalizing(true);
+
+    // Reset AI store for fresh generation
+    useAIQuestionsStore.getState().reset();
+
+    // Generate chunk 1 with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
+    try {
+      const questions = await fetchPersonalizedChunk(1, context, controller.signal);
+      useAIQuestionsStore.getState().setChunkQuestions(1, questions);
+    } catch {
+      // Fallback to static variants — quiz still works
+      useAIQuestionsStore.getState().setChunkFailed(1);
+    } finally {
+      clearTimeout(timeout);
+    }
+
     setPhase('test');
     router.push('/quiz/test');
   };
 
   return (
     <main className="flex-1 flex items-center justify-center px-4 py-16">
+      <AnimatePresence>
+        {isPersonalizing && <PersonalizingOverlay />}
+      </AnimatePresence>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
