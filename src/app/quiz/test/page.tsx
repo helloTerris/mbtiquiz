@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { ForcedChoice } from '@/components/quiz/ForcedChoice';
@@ -11,7 +11,7 @@ import { useQuizStore } from '@/stores/quiz-store';
 import { useContextStore } from '@/stores/context-store';
 import { useHydration } from '@/hooks/useHydration';
 import { CORE_QUESTIONS } from '@/engine/questions/question-bank';
-import { usePersonalizedQuestions, prefetchChunk } from '@/hooks/usePersonalizedQuestions';
+import { usePersonalizedQuestions } from '@/hooks/usePersonalizedQuestions';
 import { shouldTriggerAdaptive } from '@/engine/questions/question-selector';
 import type { Answer } from '@/types/questions';
 import { QUESTIONS_PER_CHUNK, TOTAL_CHUNKS, getAmbiguityThreshold } from '@/lib/constants';
@@ -39,14 +39,8 @@ export default function TestPage() {
   const context = useContextStore((s) => s.context);
 
   // Get current chunk's questions (AI personalized → static variant → base)
+  // All 4 chunks are fetched in parallel from the context page
   const { questions: chunkQuestions } = usePersonalizedQuestions(currentChunk);
-
-  // Pre-fetch next chunk while user answers current chunk
-  useEffect(() => {
-    if (currentChunk < TOTAL_CHUNKS) {
-      prefetchChunk(currentChunk + 1);
-    }
-  }, [currentChunk]);
 
   const currentQuestion = chunkQuestions[currentQuestionIndex];
 

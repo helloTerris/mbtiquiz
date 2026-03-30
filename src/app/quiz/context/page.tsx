@@ -24,28 +24,39 @@ export default function ContextPage() {
     // Reset AI store for fresh generation
     useAIQuestionsStore.getState().reset();
 
-    console.log('[AI Questions] Context page: starting chunk 1 generation', {
+    console.log('[AI Questions] Context page: starting all 4 chunks in parallel', {
       lifeStage: context.lifeStage,
       lifeStageDetail: context.lifeStageDetail,
       workEnvironment: context.workEnvironment,
       workEnvironmentDetail: context.workEnvironmentDetail,
     });
 
-    // Generate chunk 1 with timeout
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    // Fire all 4 chunks in parallel — wait only for chunk 1 before navigating
+    const store = useAIQuestionsStore.getState();
+    for (let c = 1; c <= 4; c++) store.setChunkLoading(c, true);
 
-    try {
-      const questions = await fetchPersonalizedChunk(1, context, controller.signal);
-      console.log(`[AI Questions] Context page: chunk 1 success — ${questions.length} questions personalized`);
-      console.log('[AI Questions] Sample rewritten question:', questions[0]?.text);
-      useAIQuestionsStore.getState().setChunkQuestions(1, questions);
-    } catch (err) {
-      console.error('[AI Questions] Context page: chunk 1 failed, falling back to static variants:', err);
-      useAIQuestionsStore.getState().setChunkFailed(1);
-    } finally {
-      clearTimeout(timeout);
-    }
+    const fetchChunk = async (chunk: number) => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      try {
+        const questions = await fetchPersonalizedChunk(chunk, context, controller.signal);
+        console.log(`[AI Questions] Chunk ${chunk}: success (${questions.length} questions)`);
+        useAIQuestionsStore.getState().setChunkQuestions(chunk, questions);
+      } catch (err) {
+        console.error(`[AI Questions] Chunk ${chunk}: failed:`, err);
+        useAIQuestionsStore.getState().setChunkFailed(chunk);
+      } finally {
+        clearTimeout(timeout);
+      }
+    };
+
+    // Chunks 2-4 fire and resolve in the background
+    fetchChunk(2);
+    fetchChunk(3);
+    fetchChunk(4);
+
+    // Wait only for chunk 1 — user needs it to start the quiz
+    await fetchChunk(1);
 
     // Log store state before navigating
     const storeState = useAIQuestionsStore.getState();
