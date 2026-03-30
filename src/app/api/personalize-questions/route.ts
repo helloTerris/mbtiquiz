@@ -26,17 +26,31 @@ CATEGORY tells you the life domain to frame the question around:
 - default-vs-forced → frame around what they do with zero obligation
 
 RULES:
-1. Rewrite the question stem using scenarios from the person's actual daily life.
-2. Rewrite options using language and examples from their reality. Both options must feel equally valid and appealing — no "right answer."
-3. Keep question text under 20 words, option text under 40 words each.
-4. Write like you're talking to a friend over coffee. Use dead-simple everyday language — short sentences, common words, zero jargon. Write it in a way that even a 12-year-old would understand.
-5. Be vivid and specific. Use "you grab your phone and google it" not "you seek external resources." Use real actions, real objects, real moments from their life.
-6. Return ONLY a raw JSON array. No markdown, no explanation.
+1. Rewrite the question stem as a specific scenario from the person's actual daily life. End the stem so the options naturally complete it (e.g. "You tend to:" or "What happens is:").
+2. Each option MUST directly answer the question. If the question asks "you start to:", the option says what you start to do. If it asks "you tend to:", the option says what you tend to do. The option is a DIRECT CONTINUATION of the question stem — not a tangent, not a separate thought.
+3. Each option describes ONE concrete action with a quick "like..." example. Structure: [what you do] — like [one vivid example]. Keep the action and the example tightly connected. Do NOT ramble or chain multiple scenarios.
+4. The two options must be CLEARLY DIFFERENT approaches — not two ways of saying the same thing. A stranger should be able to read them and immediately see two distinct behaviors.
+5. Both options must feel equally valid and appealing — no "right answer."
+6. Keep question text under 20 words, option text under 50 words each.
+7. Write like you're talking to a friend over coffee. Dead-simple everyday language — short sentences, common words, zero jargon. A 12-year-old should understand it.
+8. Be vivid and specific. Use "you grab your phone and google it" not "you seek external resources." Real actions, real objects, real moments.
+9. Return ONLY a raw JSON array. No markdown, no explanation.
 
 EXAMPLE:
 Context: freelance web designer, flexible schedule, lives alone
 Base: {"id":"q1","primaryAxis":["Ti","Te"],"category":"decision-making","text":"When you're trying to figure out a tough problem:","options":[{"id":"q1-a","text":"You work it out yourself from scratch — you need to fully understand the \"why\" before you do anything."},{"id":"q1-b","text":"You find a method that already works and use it — getting results matters more than understanding every detail."}]}
-Rewritten: {"id":"q1","text":"A client's website is broken and you have no idea why:","options":[{"id":"q1-a","text":"You open the code and start picking it apart line by line — you're not touching anything until you actually get what went wrong."},{"id":"q1-b","text":"You google the error, find a fix that works, and ship it — the client doesn't care how long you stared at the code."}]}
+Rewritten: {"id":"q1","text":"A client's website is broken and you have no idea why:","options":[{"id":"q1-a","text":"You open DevTools and trace it yourself — like reading the code line by line until you actually understand what broke and why."},{"id":"q1-b","text":"You google the error, find a fix that works, and ship it — like grabbing the first Stack Overflow answer and moving on."}]}
+
+BAD (options don't answer the question, just describe vague feelings):
+Q: "Stress piles up at work. You start to:"
+A: "Convince yourself everything is about to collapse — like picturing yourself going broke and losing it all."
+B: "Get stuck replaying every past mistake — like that one project you botched keeps looping in your head."
+WHY IT'S BAD: Neither option says what you START TO DO. They describe abstract mental spirals, not actions. Both sound like the same anxious person.
+
+GOOD (options directly answer "you start to:" with distinct actions):
+Q: "Stress piles up at work. You start to:"
+A: "Map out worst-case scenarios and plan for each one — like writing down 'if I lose this client, here's what I'd do next.'"
+B: "Lean on what's worked before to steady yourself — like going back to your old reliable routine because it got you through last time."
 
 OUTPUT SCHEMA: [{ "id": "...", "text": "...", "options": [{ "id": "...", "text": "..." }, { "id": "...", "text": "..." }] }]`;
 
@@ -194,7 +208,7 @@ export async function POST(request: Request): Promise<Response> {
 
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 2048,
+      max_tokens: 3000,
       temperature: 0.7,
       system: [
         {

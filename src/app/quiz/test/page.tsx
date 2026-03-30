@@ -9,10 +9,12 @@ import { LiveFunctionBars } from '@/components/live/LiveFunctionBars';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { useQuizStore } from '@/stores/quiz-store';
 import { useContextStore } from '@/stores/context-store';
+import { useAIQuestionsStore } from '@/stores/ai-questions-store';
 import { useHydration } from '@/hooks/useHydration';
 import { CORE_QUESTIONS } from '@/engine/questions/question-bank';
 import { usePersonalizedQuestions } from '@/hooks/usePersonalizedQuestions';
 import { shouldTriggerAdaptive } from '@/engine/questions/question-selector';
+import { fetchRefreshedQuestion } from '@/lib/personalize';
 import type { Answer } from '@/types/questions';
 import { QUESTIONS_PER_CHUNK, TOTAL_CHUNKS, getAmbiguityThreshold } from '@/lib/constants';
 
@@ -37,12 +39,14 @@ export default function TestPage() {
   } = useQuizStore();
 
   const context = useContextStore((s) => s.context);
+  const refreshingIds = useAIQuestionsStore((s) => s.refreshingQuestionIds);
 
   // Get current chunk's questions (AI personalized → static variant → base)
   // All 4 chunks are fetched in parallel from the context page
   const { questions: chunkQuestions } = usePersonalizedQuestions(currentChunk);
 
   const currentQuestion = chunkQuestions[currentQuestionIndex];
+  const isRefreshing = currentQuestion ? refreshingIds.includes(currentQuestion.id) : false;
 
   // Overall progress
   const totalAnswered = answers.length;
@@ -93,6 +97,29 @@ export default function TestPage() {
       context?.lifeStage,
     ]
   );
+
+  const handleRefresh = useCallback(() => {
+    if (!currentQuestion || !context || isRefreshing) return;
+
+    const questionId = currentQuestion.id;
+    const store = useAIQuestionsStore.getState();
+    store.setQuestionRefreshing(questionId, true);
+
+    fetchRefreshedQuestion(questionId, currentChunk, context, AbortSignal.timeout(30_000))
+      .then((refreshed) => {
+        useAIQuestionsStore.getState().updateSingleQuestion(currentChunk, refreshed);
+      })
+      .catch((err) => {
+        if (err instanceof DOMException && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
+          console.warn(`[AI Questions] Refresh ${questionId}: timed out`);
+        } else {
+          console.error(`[AI Questions] Refresh ${questionId}: failed:`, err);
+        }
+      })
+      .finally(() => {
+        useAIQuestionsStore.getState().setQuestionRefreshing(questionId, false);
+      });
+  }, [currentQuestion, currentChunk, context, isRefreshing]);
 
   const handleCheckInContinue = useCallback(() => {
     setShowCheckIn(false);
@@ -153,6 +180,8 @@ export default function TestPage() {
               totalQuestions={totalQuestions}
               onAnswer={handleAnswer}
               onBack={totalAnswered > 0 ? goBack : undefined}
+              onRefresh={context ? handleRefresh : undefined}
+              isRefreshing={isRefreshing}
             />
           </div>
 

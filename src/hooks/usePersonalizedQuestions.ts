@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useEffect, useRef } from 'react';
+import { useMemo, useEffect } from 'react';
 import { getQuestionsByChunk } from '@/engine/questions/question-bank';
 import { adaptQuestion } from '@/engine/questions/context-adapter';
 import { useContextStore } from '@/stores/context-store';
@@ -28,42 +28,39 @@ export function usePersonalizedQuestions(chunk: number): {
   const isLoading = loadingChunks.includes(chunk);
   const hasFailed = failedChunks.includes(chunk);
 
-  const fetchingRef = useRef<Set<number>>(new Set());
-
   // Trigger fetch if not ready, not loading, not failed
+  // Dedup via isLoading from the store (no ref needed)
   useEffect(() => {
     if (!context || isReady || isLoading || hasFailed) return;
-    if (fetchingRef.current.has(chunk)) return;
 
     console.log(`[AI Questions] Hook triggering fetch for chunk ${chunk}`);
-    fetchingRef.current.add(chunk);
     useAIQuestionsStore.getState().setChunkLoading(chunk, true);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
 
-    let aborted = false;
-
-    fetchPersonalizedChunk(chunk, context, controller.signal)
+    fetchPersonalizedChunk(chunk, context, AbortSignal.any([
+      controller.signal,
+      AbortSignal.timeout(30_000),
+    ]))
       .then((questions) => {
-        if (aborted) return;
+        if (controller.signal.aborted) return; // Cleanup abort — ignore
         console.log(`[AI Questions] Hook: chunk ${chunk} fetched successfully (${questions.length} questions)`);
         useAIQuestionsStore.getState().setChunkQuestions(chunk, questions);
       })
       .catch((err) => {
-        if (aborted) return; // StrictMode cleanup — not a real failure
-        console.error(`[AI Questions] Hook: chunk ${chunk} fetch failed:`, err);
+        if (controller.signal.aborted) return; // Cleanup abort — loading state reset below
+        if (err instanceof DOMException && err.name === 'TimeoutError') {
+          console.warn(`[AI Questions] Hook: chunk ${chunk} timed out`);
+        } else {
+          console.error(`[AI Questions] Hook: chunk ${chunk} fetch failed:`, err);
+        }
         useAIQuestionsStore.getState().setChunkFailed(chunk);
-      })
-      .finally(() => {
-        clearTimeout(timeout);
-        fetchingRef.current.delete(chunk);
       });
 
     return () => {
-      aborted = true;
-      clearTimeout(timeout);
       controller.abort();
+      // Reset loading state so re-mount (StrictMode) or next effect can retry
+      useAIQuestionsStore.getState().setChunkLoading(chunk, false);
     };
   }, [chunk, context, isReady, isLoading, hasFailed]);
 
@@ -117,16 +114,17 @@ export function prefetchChunk(chunk: number): void {
   console.log(`[AI Questions] Prefetching chunk ${chunk}...`);
   store.setChunkLoading(chunk, true);
 
-  const controller = new AbortController();
-  setTimeout(() => controller.abort(), 30000);
-
-  fetchPersonalizedChunk(chunk, context, controller.signal)
+  fetchPersonalizedChunk(chunk, context, AbortSignal.timeout(30_000))
     .then((questions) => {
       console.log(`[AI Questions] Prefetch chunk ${chunk}: success (${questions.length} questions)`);
       useAIQuestionsStore.getState().setChunkQuestions(chunk, questions);
     })
     .catch((err) => {
-      console.error(`[AI Questions] Prefetch chunk ${chunk}: failed:`, err);
+      if (err instanceof DOMException && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
+        console.warn(`[AI Questions] Prefetch chunk ${chunk}: timed out`);
+      } else {
+        console.error(`[AI Questions] Prefetch chunk ${chunk}: failed:`, err);
+      }
       useAIQuestionsStore.getState().setChunkFailed(chunk);
     });
 }

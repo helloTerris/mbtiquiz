@@ -36,17 +36,17 @@ export default function ContextPage() {
     for (let c = 1; c <= 4; c++) store.setChunkLoading(c, true);
 
     const fetchChunk = async (chunk: number) => {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000);
       try {
-        const questions = await fetchPersonalizedChunk(chunk, context, controller.signal);
+        const questions = await fetchPersonalizedChunk(chunk, context, AbortSignal.timeout(30_000));
         console.log(`[AI Questions] Chunk ${chunk}: success (${questions.length} questions)`);
         useAIQuestionsStore.getState().setChunkQuestions(chunk, questions);
       } catch (err) {
-        console.error(`[AI Questions] Chunk ${chunk}: failed:`, err);
+        if (err instanceof DOMException && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
+          console.warn(`[AI Questions] Chunk ${chunk}: timed out`);
+        } else {
+          console.error(`[AI Questions] Chunk ${chunk}: failed:`, err);
+        }
         useAIQuestionsStore.getState().setChunkFailed(chunk);
-      } finally {
-        clearTimeout(timeout);
       }
     };
 

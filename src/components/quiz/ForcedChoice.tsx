@@ -11,6 +11,8 @@ interface ForcedChoiceProps {
   totalQuestions: number;
   onAnswer: (answer: Answer) => void;
   onBack?: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 const INTENSITY_OPTIONS = [
@@ -25,6 +27,8 @@ export function ForcedChoice({
   totalQuestions,
   onAnswer,
   onBack,
+  onRefresh,
+  isRefreshing,
 }: ForcedChoiceProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -100,12 +104,40 @@ export function ForcedChoice({
         </div>
 
         {/* Question text */}
-        <h2 className="text-2xl md:text-3xl font-medium text-foreground mb-10 leading-relaxed tracking-[-0.01em]">
+        <h2 className="text-2xl md:text-3xl font-medium text-foreground mb-4 leading-relaxed tracking-[-0.01em]">
           {question.text}
         </h2>
 
+        {/* Refresh button */}
+        {onRefresh && (
+          <button
+            onClick={onRefresh}
+            disabled={isRefreshing || submitting}
+            className={cn(
+              'flex items-center gap-1.5 text-xs font-mono text-muted mb-8',
+              'hover:text-foreground transition-colors cursor-pointer',
+              'disabled:opacity-40 disabled:cursor-not-allowed',
+            )}
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 16 16"
+              fill="none"
+              className={cn('opacity-60', isRefreshing && 'animate-spin')}
+            >
+              <path
+                d="M13.65 2.35A7.96 7.96 0 0 0 8 0a8 8 0 1 0 7.74 6h-2.08A6 6 0 1 1 8 2c1.66 0 3.14.69 4.22 1.78L9 7h7V0l-2.35 2.35z"
+                fill="currentColor"
+              />
+            </svg>
+            {isRefreshing ? 'Generating...' : 'Different example'}
+          </button>
+        )}
+        {!onRefresh && <div className="mb-6" />}
+
         {/* Choice options */}
-        <div className="space-y-4">
+        <div className={cn('space-y-4', isRefreshing && 'opacity-40 pointer-events-none')}>
           {question.options.map((option, index) => {
             const isSelected = selected === option.id;
             const isOther = selected !== null && !isSelected;

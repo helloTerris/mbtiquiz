@@ -10,10 +10,14 @@ interface AIQuestionsState {
   loadingChunks: number[];
   /** Chunk numbers that failed generation */
   failedChunks: number[];
+  /** Question IDs currently being refreshed */
+  refreshingQuestionIds: string[];
 
   setChunkQuestions: (chunk: number, questions: PersonalizedQuestionOutput[]) => void;
   setChunkLoading: (chunk: number, loading: boolean) => void;
   setChunkFailed: (chunk: number) => void;
+  setQuestionRefreshing: (id: string, refreshing: boolean) => void;
+  updateSingleQuestion: (chunk: number, question: PersonalizedQuestionOutput) => void;
   reset: () => void;
 }
 
@@ -21,6 +25,7 @@ export const useAIQuestionsStore = create<AIQuestionsState>()((set) => ({
   personalizedChunks: {},
   loadingChunks: [],
   failedChunks: [],
+  refreshingQuestionIds: [],
 
   setChunkQuestions: (chunk, questions) =>
     set((state) => ({
@@ -41,10 +46,29 @@ export const useAIQuestionsStore = create<AIQuestionsState>()((set) => ({
       failedChunks: state.failedChunks.includes(chunk) ? state.failedChunks : [...state.failedChunks, chunk],
     })),
 
+  setQuestionRefreshing: (id, refreshing) =>
+    set((state) => ({
+      refreshingQuestionIds: refreshing
+        ? state.refreshingQuestionIds.includes(id) ? state.refreshingQuestionIds : [...state.refreshingQuestionIds, id]
+        : state.refreshingQuestionIds.filter((qid) => qid !== id),
+    })),
+
+  updateSingleQuestion: (chunk, question) =>
+    set((state) => {
+      const existing = state.personalizedChunks[chunk] ?? [];
+      const updated = existing.some((q) => q.id === question.id)
+        ? existing.map((q) => (q.id === question.id ? question : q))
+        : [...existing, question];
+      return {
+        personalizedChunks: { ...state.personalizedChunks, [chunk]: updated },
+      };
+    }),
+
   reset: () =>
     set({
       personalizedChunks: {},
       loadingChunks: [],
       failedChunks: [],
+      refreshingQuestionIds: [],
     }),
 }));

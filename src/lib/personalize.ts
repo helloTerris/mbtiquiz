@@ -61,6 +61,39 @@ export function mergePersonalized(
   });
 }
 
+/** Fetch a fresh AI rewrite for a single question */
+export async function fetchRefreshedQuestion(
+  questionId: string,
+  chunk: number,
+  context: UserContext,
+  signal?: AbortSignal
+): Promise<PersonalizedQuestionOutput> {
+  const baseQuestions = getQuestionsByChunk(chunk);
+  const baseQuestion = baseQuestions.find((q) => q.id === questionId);
+  if (!baseQuestion) throw new Error(`Question ${questionId} not found in chunk ${chunk}`);
+
+  const payload: PersonalizeRequest = {
+    chunk,
+    questions: stripQuestionsForAI([baseQuestion]),
+    context: buildAIContext(context),
+  };
+
+  const res = await fetch('/api/personalize-questions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+    signal,
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text().catch(() => 'no body');
+    throw new Error(`Refresh failed: ${res.status} — ${errorBody}`);
+  }
+
+  const data = (await res.json()) as PersonalizeResponse;
+  return data.questions[0];
+}
+
 /** Fetch personalized questions for a chunk from the API route */
 export async function fetchPersonalizedChunk(
   chunk: number,
