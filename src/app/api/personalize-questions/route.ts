@@ -1,7 +1,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { PersonalizeRequest, PersonalizeResponse, PersonalizedQuestionOutput } from '@/types/ai-questions';
 
-const client = new Anthropic();
+function getClient() {
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+}
 
 const SYSTEM_PROMPT = `You are a question personalization engine for a cognitive function assessment.
 Rewrite question and option text so it feels personally relevant to the test-taker.
@@ -177,6 +179,7 @@ export async function POST(request: Request): Promise<Response> {
 
     console.log(`[API] Calling Claude Sonnet for chunk ${body.chunk}...`);
     const startTime = Date.now();
+    const client = getClient();
 
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
