@@ -29,7 +29,7 @@ RULES:
 1. Rewrite the question stem using scenarios from the person's actual daily life.
 2. Rewrite options using language and examples from their reality. Both options must feel equally valid and appealing — no "right answer."
 3. Keep question text under 20 words, option text under 40 words each.
-4. Write like you're explaining to a friend over coffee. Use dead-simple everyday language — short sentences, common words, zero jargon. If a 12-year-old wouldn't understand it, rewrite it simpler.
+4. Write like you're talking to a friend over coffee. Use dead-simple everyday language — short sentences, common words, zero jargon. Write it in a way that even a 12-year-old would understand.
 5. Be vivid and specific. Use "you grab your phone and google it" not "you seek external resources." Use real actions, real objects, real moments from their life.
 6. Return ONLY a raw JSON array. No markdown, no explanation.
 
