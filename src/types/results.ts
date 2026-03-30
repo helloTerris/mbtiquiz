@@ -22,6 +22,7 @@ export interface QuizResult {
   trueSelfAnalysis: TrueSelfAnalysis | null;
   loopState: LoopState;
   completedAt: number;
+  isShared?: boolean;
 }
 
 export interface TypeExplanation {

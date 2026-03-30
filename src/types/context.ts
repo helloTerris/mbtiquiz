@@ -23,6 +23,10 @@ export type StressLevel = 'low' | 'moderate' | 'high';
 
 export type UpbringingStyle = 'be-tough' | 'be-kind' | 'balanced';
 
+export type CulturalValues = 'individualist' | 'collectivist' | 'mixed';
+
+export type MentalEnergy = 'clear' | 'scattered' | 'low' | 'anxious';
+
 export interface UserContext {
   lifeStage: LifeStage;
   lifeStageDetail?: string;
@@ -31,8 +35,11 @@ export interface UserContext {
   dailyStructure: 'structured' | 'flexible' | 'mixed';
   socialExposure: 'low' | 'medium' | 'high';
   livingSituation: LivingSituation;
+  hobbies?: string;
   stressLevel: StressLevel;
+  mentalEnergy: MentalEnergy;
   upbringing: UpbringingStyle;
+  culturalValues: CulturalValues;
   previousMBTIExperience: boolean;
   selfReportedType?: string;
   isTypingOther: boolean;

@@ -191,7 +191,7 @@ export function VoterForm({ subjectName, onSubmit }: VoterFormProps) {
                           : 'border-border text-muted bg-surface/50'
                       )}
                     >
-                      {index === 0 ? 'A' : 'B'}
+                      {String.fromCharCode(65 + index)}
                     </span>
                     <p className={cn(
                       'text-base leading-relaxed transition-colors duration-300 pt-1',

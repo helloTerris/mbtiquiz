@@ -16,6 +16,8 @@ const BIAS_ICONS: Record<BiasIndicator['type'], string> = {
   'upbringing-conditioning': '\u{1F331}',
   'social-exposure-mismatch': '\u{1F504}',
   'life-stage-pressure': '\u{231B}',
+  'mental-state': '\u{1F9E0}',
+  'cultural-conditioning': '\u{1F30D}',
 };
 
 const BIAS_TITLES: Record<BiasIndicator['type'], string> = {
@@ -26,6 +28,8 @@ const BIAS_TITLES: Record<BiasIndicator['type'], string> = {
   'upbringing-conditioning': 'Shaped by how you were raised',
   'social-exposure-mismatch': 'Social life vs. answers don\'t match',
   'life-stage-pressure': 'Your current life stage may be talking',
+  'mental-state': 'Current mental state may be skewing results',
+  'cultural-conditioning': 'Cultural values may have shaped your answers',
 };
 
 const MAX_DISPLAYED_INDICATORS = 4;

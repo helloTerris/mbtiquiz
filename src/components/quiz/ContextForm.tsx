@@ -4,13 +4,13 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/cn';
-import type { UserContext, LifeStage, WorkEnvironment, LivingSituation, StressLevel, UpbringingStyle } from '@/types/context';
+import type { UserContext, LifeStage, WorkEnvironment, LivingSituation, StressLevel, UpbringingStyle, CulturalValues, MentalEnergy } from '@/types/context';
 
 interface ContextFormProps {
   onSubmit: (context: UserContext) => void;
 }
 
-type Step = 'lifeStage' | 'workEnv' | 'structure' | 'socialAndLiving' | 'upbringingAndStress' | 'mbtiExp';
+type Step = 'lifeStage' | 'workEnv' | 'structure' | 'socialAndLiving' | 'hobbies' | 'upbringingAndStress' | 'mbtiExp';
 
 // Life stages that have a work environment
 const WORKING_STAGES: LifeStage[] = ['student', 'early-career', 'mid-career', 'freelance'];
@@ -71,6 +71,21 @@ const LIVING_SITUATIONS: { value: LivingSituation; label: string; desc: string; 
   { value: 'roommates', label: 'Roommates', desc: 'Shared living with non-family', icon: '\u{1F465}' },
 ];
 
+const HOBBY_OPTIONS: { id: string; label: string; icon: string; examples: string }[] = [
+  { id: 'gaming', label: 'Gaming', icon: '\u{1F3AE}', examples: 'Video games, board games, card games' },
+  { id: 'sports', label: 'Sports & Fitness', icon: '\u{1F3CB}', examples: 'Gym, running, team sports, martial arts' },
+  { id: 'creative', label: 'Creative', icon: '\u{1F3A8}', examples: 'Drawing, music, photography, writing' },
+  { id: 'outdoors', label: 'Outdoors', icon: '\u{26F0}', examples: 'Hiking, camping, gardening, fishing' },
+  { id: 'cooking', label: 'Cooking & Food', icon: '\u{1F373}', examples: 'Cooking, baking, trying new restaurants' },
+  { id: 'reading', label: 'Reading & Learning', icon: '\u{1F4DA}', examples: 'Books, podcasts, online courses, documentaries' },
+  { id: 'social', label: 'Going Out', icon: '\u{1F37B}', examples: 'Parties, hangouts, bars, events, concerts' },
+  { id: 'tech', label: 'Tech & Tinkering', icon: '\u{1F527}', examples: 'Side projects, coding, building things, 3D printing' },
+  { id: 'media', label: 'Shows & Media', icon: '\u{1F4FA}', examples: 'Anime, movies, TV series, YouTube, streaming' },
+  { id: 'crafts', label: 'Crafts & DIY', icon: '\u{1F9F5}', examples: 'Woodworking, knitting, home projects, models' },
+  { id: 'travel', label: 'Travel & Exploring', icon: '\u{2708}', examples: 'Trips, road trips, new cities, cultures' },
+  { id: 'other', label: 'Other', icon: '\u{2728}', examples: 'Something not listed here' },
+];
+
 const UPBRINGING_STYLES: { value: UpbringingStyle; label: string; desc: string; icon: string }[] = [
   { value: 'be-tough', label: 'Be Tough', desc: 'Stay strong, be logical, don\'t show weakness', icon: '\u{1F6E1}' },
   { value: 'be-kind', label: 'Be Kind', desc: 'Think of others, keep the peace, be caring', icon: '\u{1F49B}' },
@@ -81,6 +96,19 @@ const STRESS_LEVELS: { value: StressLevel; label: string; desc: string; icon: st
   { value: 'low', label: 'Low', desc: 'Life feels manageable and calm', icon: '\u{1F33F}' },
   { value: 'moderate', label: 'Moderate', desc: 'Some pressure but handling it', icon: '\u{1F60C}' },
   { value: 'high', label: 'High', desc: 'Significant stress right now', icon: '\u{1F525}' },
+];
+
+const CULTURAL_VALUES_OPTIONS: { value: CulturalValues; label: string; desc: string; icon: string }[] = [
+  { value: 'individualist', label: 'Individual Achievement', desc: 'Independence, self-expression, personal success', icon: '\u{1F3C6}' },
+  { value: 'collectivist', label: 'Group Harmony', desc: 'Family duty, community, fitting in', icon: '\u{1F91D}' },
+  { value: 'mixed', label: 'Mix of Both', desc: 'Elements of both individual and group values', icon: '\u{2696}' },
+];
+
+const MENTAL_ENERGY_OPTIONS: { value: MentalEnergy; label: string; desc: string; icon: string }[] = [
+  { value: 'clear', label: 'Clear & Focused', desc: 'Mind works as expected', icon: '\u{2728}' },
+  { value: 'scattered', label: 'Scattered / Restless', desc: 'Hard to focus, jumping between things', icon: '\u{1F300}' },
+  { value: 'low', label: 'Low / Withdrawn', desc: 'Low motivation, not engaging much', icon: '\u{1F32B}' },
+  { value: 'anxious', label: 'Anxious / Overthinking', desc: 'Mind racing, worst-case thinking', icon: '\u{26A1}' },
 ];
 
 function RadioOption({
@@ -156,9 +184,33 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
   const [structure, setStructure] = useState<'structured' | 'flexible' | 'mixed' | null>(null);
   const [social, setSocial] = useState<'low' | 'medium' | 'high' | null>(null);
   const [livingSituation, setLivingSituation] = useState<LivingSituation | null>(null);
+  const [selectedHobbies, setSelectedHobbies] = useState<Set<string>>(new Set());
+  const [hobbyOtherDetail, setHobbyOtherDetail] = useState('');
   const [upbringing, setUpbringing] = useState<UpbringingStyle | null>(null);
+  const [culturalValues, setCulturalValues] = useState<CulturalValues | null>(null);
   const [stressLevel, setStressLevel] = useState<StressLevel | null>(null);
+  const [mentalEnergy, setMentalEnergy] = useState<MentalEnergy | null>(null);
   const [mbtiExp, setMbtiExp] = useState<boolean | null>(null);
+
+  const toggleHobby = (id: string) => {
+    setSelectedHobbies((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Build hobbies string from selections
+  const hobbiesString = useMemo(() => {
+    const labels = HOBBY_OPTIONS
+      .filter((h) => selectedHobbies.has(h.id) && h.id !== 'other')
+      .map((h) => h.label);
+    if (selectedHobbies.has('other') && hobbyOtherDetail.trim()) {
+      labels.push(hobbyOtherDetail.trim());
+    }
+    return labels.join(', ');
+  }, [selectedHobbies, hobbyOtherDetail]);
 
   // Dynamic steps: skip workEnv if life stage doesn't have a work environment
   const steps = useMemo<Step[]>(() => {
@@ -166,7 +218,7 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
     if (lifeStage && WORKING_STAGES.includes(lifeStage)) {
       base.push('workEnv');
     }
-    base.push('structure', 'socialAndLiving', 'upbringingAndStress', 'mbtiExp');
+    base.push('structure', 'socialAndLiving', 'hobbies', 'upbringingAndStress', 'mbtiExp');
     return base;
   }, [lifeStage]);
 
@@ -190,13 +242,17 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
         return true;
       case 'structure': return structure !== null;
       case 'socialAndLiving': return social !== null && livingSituation !== null;
-      case 'upbringingAndStress': return upbringing !== null && stressLevel !== null;
+      case 'hobbies':
+        if (selectedHobbies.size === 0) return false;
+        if (selectedHobbies.has('other') && !hobbyOtherDetail.trim()) return false;
+        return true;
+      case 'upbringingAndStress': return upbringing !== null && culturalValues !== null && stressLevel !== null && mentalEnergy !== null;
       case 'mbtiExp': return mbtiExp !== null;
     }
   };
 
   const handleNext = () => {
-    if (step === 'mbtiExp' && lifeStage && structure && social && livingSituation && upbringing && stressLevel && mbtiExp !== null) {
+    if (step === 'mbtiExp' && lifeStage && structure && social && livingSituation && upbringing && culturalValues && stressLevel && mentalEnergy && mbtiExp !== null) {
       onSubmit({
         lifeStage,
         lifeStageDetail: lifeStageDetail.trim() || undefined,
@@ -205,8 +261,11 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
         dailyStructure: structure,
         socialExposure: social,
         livingSituation,
+        hobbies: hobbiesString || undefined,
         stressLevel,
+        mentalEnergy,
         upbringing,
+        culturalValues,
         previousMBTIExperience: mbtiExp,
         isTypingOther: false,
       });
@@ -214,7 +273,6 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
     }
     const nextIndex = currentIndex + 1;
     if (nextIndex < steps.length) {
-      // When changing life stage, reset workEnv if no longer applicable
       if (step === 'lifeStage' && lifeStage && !WORKING_STAGES.includes(lifeStage)) {
         setWorkEnv(null);
       }
@@ -228,6 +286,7 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
     workEnv: 'What kind of environment do you work in?',
     structure: 'How structured is your daily life?',
     socialAndLiving: 'Your social life and living situation',
+    hobbies: 'What do you do in your free time?',
     upbringingAndStress: 'Your background and current state',
     mbtiExp: 'Have you explored MBTI or cognitive functions before?',
   };
@@ -276,9 +335,15 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
           exit={{ opacity: 0, x: direction * -30 }}
           transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
         >
-          <h2 className="text-2xl md:text-3xl font-medium text-foreground mb-6 tracking-[-0.01em]">
+          <h2 className="text-2xl md:text-3xl font-medium text-foreground mb-2 tracking-[-0.01em]">
             {stepTitles[step]}
           </h2>
+          {step === 'hobbies' && (
+            <p className="text-sm text-muted mb-6">
+              Pick everything that applies. This helps us write questions about your actual life, not generic scenarios.
+            </p>
+          )}
+          {step !== 'hobbies' && <div className="mb-4" />}
 
           <div className="space-y-3">
             {step === 'lifeStage' && (
@@ -399,6 +464,87 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
               </>
             )}
 
+            {step === 'hobbies' && (
+              <>
+                <div className="flex flex-wrap gap-2.5">
+                  {HOBBY_OPTIONS.map((h) => {
+                    const isActive = selectedHobbies.has(h.id);
+                    return (
+                      <motion.button
+                        key={h.id}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => toggleHobby(h.id)}
+                        className={cn(
+                          'inline-flex items-center gap-2 px-4 py-2.5 rounded-xl cursor-pointer',
+                          'border-2 transition-all duration-200',
+                          'text-sm font-medium',
+                          isActive
+                            ? [
+                                'border-accent-bright/50 bg-accent/[0.12] text-foreground',
+                                'shadow-[0_0_16px_rgba(124,106,239,0.2)]',
+                              ]
+                            : [
+                                'border-transparent bg-glass text-muted',
+                                'hover:border-border-hover hover:bg-surface-hover hover:text-foreground',
+                              ]
+                        )}
+                      >
+                        <span className="text-base">{h.icon}</span>
+                        {h.label}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+
+                {/* Selected hobby details */}
+                {selectedHobbies.size > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    transition={{ duration: 0.2 }}
+                    className="mt-4 space-y-2"
+                  >
+                    <div className="flex flex-wrap gap-2">
+                      {HOBBY_OPTIONS
+                        .filter((h) => selectedHobbies.has(h.id) && h.id !== 'other')
+                        .map((h) => (
+                          <span
+                            key={h.id}
+                            className="text-xs text-muted bg-surface/50 rounded-lg px-2.5 py-1"
+                          >
+                            {h.examples}
+                          </span>
+                        ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Other hobby custom input */}
+                <AnimatePresence>
+                  {selectedHobbies.has('other') && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <label className="block text-sm text-muted mt-4 mb-2">
+                        What else are you into? <span className="text-accent-bright">(required)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={hobbyOtherDetail}
+                        onChange={(e) => setHobbyOtherDetail(e.target.value.slice(0, 80))}
+                        placeholder="e.g., collecting vinyl, competitive chess, restoring old cars"
+                        className="w-full bg-glass border border-glass-border rounded-xl px-4 py-3 text-foreground placeholder:text-muted/50 focus:outline-none focus:border-accent/50 focus:shadow-[0_0_12px_rgba(124,106,239,0.2)] transition-all duration-300"
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
+            )}
+
             {step === 'upbringingAndStress' && (
               <>
                 <p className="text-sm font-mono text-muted uppercase tracking-wider mb-2">Growing up, the message you got most was</p>
@@ -413,6 +559,18 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
                   />
                 ))}
                 <div className="border-t border-border my-4" />
+                <p className="text-sm font-mono text-muted uppercase tracking-wider mb-2">The values emphasized in your upbringing were mostly about</p>
+                {CULTURAL_VALUES_OPTIONS.map((s) => (
+                  <RadioOption
+                    key={s.value}
+                    selected={culturalValues === s.value}
+                    label={s.label}
+                    desc={s.desc}
+                    icon={s.icon}
+                    onClick={() => setCulturalValues(s.value)}
+                  />
+                ))}
+                <div className="border-t border-border my-4" />
                 <p className="text-sm font-mono text-muted uppercase tracking-wider mb-2">How stressed are you right now?</p>
                 {STRESS_LEVELS.map((s) => (
                   <RadioOption
@@ -422,6 +580,18 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
                     desc={s.desc}
                     icon={s.icon}
                     onClick={() => setStressLevel(s.value)}
+                  />
+                ))}
+                <div className="border-t border-border my-4" />
+                <p className="text-sm font-mono text-muted uppercase tracking-wider mb-2">How does your mind feel lately?</p>
+                {MENTAL_ENERGY_OPTIONS.map((s) => (
+                  <RadioOption
+                    key={s.value}
+                    selected={mentalEnergy === s.value}
+                    label={s.label}
+                    desc={s.desc}
+                    icon={s.icon}
+                    onClick={() => setMentalEnergy(s.value)}
                   />
                 ))}
               </>
@@ -449,26 +619,43 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
         </motion.div>
       </AnimatePresence>
 
-      <div className="mt-10 flex justify-between items-center">
-        {currentIndex > 0 ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => goToStep(currentIndex - 1)}
+      {/* Spacer so content doesn't get hidden behind fixed bar */}
+      <div className="h-24" />
+
+      {/* Fixed bottom bar — slides up when an option is selected */}
+      <AnimatePresence>
+        {canProceed() && (
+          <motion.div
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+            className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-6 pt-4 bg-gradient-to-t from-background via-background/95 to-transparent"
           >
-            Back
-          </Button>
-        ) : (
-          <div />
+            <div className="max-w-lg mx-auto flex justify-between items-center gap-3">
+              {currentIndex > 0 ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => goToStep(currentIndex - 1)}
+                >
+                  Back
+                </Button>
+              ) : (
+                <div />
+              )}
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleNext}
+                className="flex-1 max-w-xs"
+              >
+                {step === 'mbtiExp' ? 'Start Test' : 'Continue'}
+              </Button>
+            </div>
+          </motion.div>
         )}
-        <Button
-          variant="primary"
-          onClick={handleNext}
-          disabled={!canProceed()}
-        >
-          {step === 'mbtiExp' ? 'Start Test' : 'Continue'}
-        </Button>
-      </div>
+      </AnimatePresence>
     </div>
   );
 }

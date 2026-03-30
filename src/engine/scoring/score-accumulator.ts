@@ -280,6 +280,50 @@ function getStressLevelModifier(
   return 1.0;
 }
 
+function getMentalEnergyModifier(
+  question: Question,
+  selectedFunctions: CognitiveFunction[],
+  context: UserContext | null
+): number {
+  if (!context || !context.mentalEnergy || context.mentalEnergy === 'clear') return 1.0;
+
+  if (context.mentalEnergy === 'scattered') {
+    if (selectedFunctions.includes('Ne')) return 0.9;
+  }
+
+  if (context.mentalEnergy === 'low') {
+    if (selectedFunctions.some(fn => (['Si', 'Ni'] as CognitiveFunction[]).includes(fn))) {
+      return 0.92;
+    }
+  }
+
+  if (context.mentalEnergy === 'anxious') {
+    if (selectedFunctions.includes('Ni')) return 0.9;
+  }
+
+  return 1.0;
+}
+
+function getCulturalValuesModifier(
+  question: Question,
+  selectedFunctions: CognitiveFunction[],
+  context: UserContext | null
+): number {
+  if (!context || !context.culturalValues || context.culturalValues === 'mixed') return 1.0;
+
+  if (context.culturalValues === 'collectivist') {
+    if (question.category === 'social-interaction' && selectedFunctions.includes('Fe')) return 0.92;
+    if (question.category === 'work-style' && selectedFunctions.includes('Si')) return 0.93;
+  }
+
+  if (context.culturalValues === 'individualist') {
+    if (question.category === 'decision-making' && selectedFunctions.includes('Fi')) return 0.92;
+    if (question.category === 'work-style' && selectedFunctions.includes('Te')) return 0.93;
+  }
+
+  return 1.0;
+}
+
 /**
  * Pure reducer: takes current scores + a new answer, returns updated scores.
  */
@@ -304,12 +348,15 @@ export function accumulateScore(
   const lifeStageModifier = getLifeStageModifier(question, selectedFunctions, ctx);
   const livingSitModifier = getLivingSituationModifier(question, selectedFunctions, ctx);
   const stressModifier = getStressLevelModifier(question, ctx);
+  const mentalEnergyModifier = getMentalEnergyModifier(question, selectedFunctions, ctx);
+  const culturalModifier = getCulturalValuesModifier(question, selectedFunctions, ctx);
 
   // Cap combined context modifiers at 0.85 (15% max discount) to prevent
   // over-penalizing people whose environment genuinely matches their type.
   const contextModifier = Math.max(0.85,
     workEnvModifier * workEnvTypeModifier * socialEnvModifier * upbringingModifier
     * confirmBiasModifier * lifeStageModifier * livingSitModifier * stressModifier
+    * mentalEnergyModifier * culturalModifier
   );
 
   const newScores = { ...current.scores };

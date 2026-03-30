@@ -16,41 +16,79 @@ FUNCTION REFERENCE (what each axis measures):
 
 Option A always maps to the FIRST function in primaryAxis, Option B to the SECOND. Preserve this exactly.
 
-CATEGORY tells you the life domain to frame the question around:
-- social-interaction → frame around people, groups, relationships
-- decision-making → frame around choices, tradeoffs, judgments
-- information-processing → frame around learning, thinking, absorbing info
-- work-style → frame around how they work, organize, produce
-- inner-world → frame around private thoughts, feelings, downtime
-- stress-response → frame around pressure, overwhelm, bad days
-- default-vs-forced → frame around what they do with zero obligation
+CATEGORY tells you the life domain AND which context to draw from:
+
+USE WORK/SCHOOL CONTEXT for these categories — frame around their job, classes, professional life:
+- work-style → how they work, organize, produce
+- decision-making → choices and tradeoffs in their professional/practical life
+
+USE PERSONAL/OFF-DUTY CONTEXT for these categories — frame around hobbies, downtime, personal relationships, weekends, free time. NEVER frame these around work or obligations:
+- inner-world → private thoughts, feelings, what they do alone at home
+- default-vs-forced → what they naturally do with zero obligation (this is the MOST IMPORTANT category for accuracy — work habits are often forced, not natural)
+- social-interaction → friends, family, social gatherings, dating — NOT coworkers or clients
+
+USE EITHER (but vary it) for these:
+- information-processing → learning, thinking, absorbing info (can be work or personal curiosity)
+- stress-response → pressure, overwhelm (can be work deadlines OR personal life stress)
+
+WHY THIS MATTERS: People often behave differently at work vs their natural state. A person forced to be organized at work might be chaotic at home — the home behavior reveals their real type. If you frame EVERY question around work, you're testing their work persona, not their actual cognitive wiring.
+
+CORE PRINCIPLE — GROUND IN THE RIGHT CONTEXT:
+Use the person's context to pick scenarios, but match the scenario to the CATEGORY above. For work-style, use their job. For inner-world and default-vs-forced, use their hobbies, home life, weekends, personal interests. Make the scenario vivid and specific either way.
+
+Examples of grounding by category:
+- work-style, web designer: "A client wants their site redesigned from scratch. You:"
+- inner-world, web designer: "It's Sunday morning, you've got nowhere to be. Your mind:"
+- default-vs-forced, web designer: "You're scrolling your phone in bed with nothing planned. You:"
+- social-interaction, web designer: "Your friend group is planning a weekend trip. You:"
+- decision-making, student: "You're picking your electives for next semester. You:"
+- stress-response, freelancer: "Three deadlines hit at once and your laptop crashes. You:"
+
+NEVER leave generic phrases like "a project," "a creative task," "your work," "a problem." Replace them with SPECIFIC things from the right context for that category.
+
+SINGLE SUBJECT RULE:
+Each question must use ONE consistent subject/person throughout — the question stem AND both options. If the base question mentions multiple subjects (e.g. "a client or classmate"), pick the ONE that fits the person's context best. Do NOT mix subjects across options or hedge with "or." The whole question should feel like one coherent scenario about one specific person or situation in their life.
 
 RULES:
-1. Rewrite the question stem as a specific scenario from the person's actual daily life. End the stem so the options naturally complete it (e.g. "You tend to:" or "What happens is:").
-2. Each option MUST directly answer the question. If the question asks "you start to:", the option says what you start to do. If it asks "you tend to:", the option says what you tend to do. The option is a DIRECT CONTINUATION of the question stem — not a tangent, not a separate thought.
-3. Each option describes ONE concrete action with a quick "like..." example. Structure: [what you do] — like [one vivid example]. Keep the action and the example tightly connected. Do NOT ramble or chain multiple scenarios.
+1. Rewrite the question stem as a specific scenario from the person's actual daily life. End the stem so the options naturally complete it (e.g. "You tend to:" or "What happens is:"). Replace every generic word with something from their context.
+2. Each option MUST directly answer the question. If the question asks "you start to:", the option says what you start to do. The option is a DIRECT CONTINUATION of the question stem — not a tangent, not a separate thought.
+3. Each option describes ONE concrete action with a quick "like..." example. Structure: [what you do] — like [one vivid example from their life]. Keep the action and the example tightly connected. Do NOT ramble or chain multiple scenarios.
 4. The two options must be CLEARLY DIFFERENT approaches — not two ways of saying the same thing. A stranger should be able to read them and immediately see two distinct behaviors.
 5. Both options must feel equally valid and appealing — no "right answer."
-6. Keep question text under 20 words, option text under 50 words each.
-7. Write like you're talking to a friend over coffee. Dead-simple everyday language — short sentences, common words, zero jargon. A 12-year-old should understand it.
-8. Be vivid and specific. Use "you grab your phone and google it" not "you seek external resources." Real actions, real objects, real moments.
-9. Return ONLY a raw JSON array. No markdown, no explanation.
+6. Both options must be roughly the same length (within ~10 words of each other).
+7. Don't make one option sound more "mature," "wise," "deep," or "self-aware" than the other. Neither should sound like the "smarter" choice.
+8. Avoid value-loaded words in only one option (e.g., don't use "thoughtful" in one and "impulsive" in the other). If one option uses a positive-sounding word, the other must too.
+9. Both options should sound like something a normal, healthy person would do — neither should sound dysfunctional or immature.
+10. Keep question text under 20 words, option text under 50 words each.
+11. Write like you're talking to a friend over coffee. Dead-simple everyday language — short sentences, common words, zero jargon. A 12-year-old should understand it.
+12. Be vivid and specific. Use "you grab your phone and google it" not "you seek external resources." Real actions, real objects, real moments from THEIR life, not generic ones.
+13. Return ONLY a raw JSON array. No markdown, no explanation.
 
 EXAMPLE:
 Context: freelance web designer, flexible schedule, lives alone
 Base: {"id":"q1","primaryAxis":["Ti","Te"],"category":"decision-making","text":"When you're trying to figure out a tough problem:","options":[{"id":"q1-a","text":"You work it out yourself from scratch — you need to fully understand the \"why\" before you do anything."},{"id":"q1-b","text":"You find a method that already works and use it — getting results matters more than understanding every detail."}]}
 Rewritten: {"id":"q1","text":"A client's website is broken and you have no idea why:","options":[{"id":"q1-a","text":"You open DevTools and trace it yourself — like reading the code line by line until you actually understand what broke and why."},{"id":"q1-b","text":"You google the error, find a fix that works, and ship it — like grabbing the first Stack Overflow answer and moving on."}]}
+WHY IT WORKS: "tough problem" became "client's website is broken." "work it out yourself" became "open DevTools and trace it." Every word maps to what a freelance web designer actually does.
 
-BAD (options don't answer the question, just describe vague feelings):
+BAD (abstract, not grounded in their life):
+Context: freelance web designer
 Q: "Stress piles up at work. You start to:"
 A: "Convince yourself everything is about to collapse — like picturing yourself going broke and losing it all."
 B: "Get stuck replaying every past mistake — like that one project you botched keeps looping in your head."
-WHY IT'S BAD: Neither option says what you START TO DO. They describe abstract mental spirals, not actions. Both sound like the same anxious person.
+WHY IT'S BAD: "work" is vague — say "client deadlines." Neither option says what you START TO DO. They describe abstract mental spirals, not actions a web designer would take.
 
-GOOD (options directly answer "you start to:" with distinct actions):
-Q: "Stress piles up at work. You start to:"
-A: "Map out worst-case scenarios and plan for each one — like writing down 'if I lose this client, here's what I'd do next.'"
-B: "Lean on what's worked before to steady yourself — like going back to your old reliable routine because it got you through last time."
+GOOD (grounded in their actual life, answers the question):
+Context: freelance web designer
+Q: "Three client deadlines land in the same week and you're falling behind. You start to:"
+A: "Make a spreadsheet of what's due when and triage by urgency — like writing out 'if I miss this one, here's the fallback plan for each client.'"
+B: "Go back to your usual crunch routine that's gotten you through before — like pulling the same late-night workflow you always do when things pile up."
+
+REGENERATION:
+If a question includes "previousVersions", the user already saw those and is asking for something DIFFERENT. You MUST:
+- Use a completely different scenario/angle from ALL listed previous versions.
+- Use different actions, different examples, different framing. Do NOT rephrase the same idea.
+- Still measure the SAME cognitive function axis (primaryAxis) and stay within the SAME category.
+- The new version should feel like a genuinely fresh question, not a remix.
 
 OUTPUT SCHEMA: [{ "id": "...", "text": "...", "options": [{ "id": "...", "text": "..." }, { "id": "...", "text": "..." }] }]`;
 
@@ -63,7 +101,10 @@ function buildUserPrompt(req: PersonalizeRequest): string {
     `Daily structure: ${context.dailyStructure}`,
     `Social exposure: ${context.socialExposure}`,
     `Living situation: ${context.livingSituation}`,
+    ...(context.hobbies ? [`Hobbies/interests: ${context.hobbies}`] : []),
     `Stress level: ${context.stressLevel}`,
+    `Mental energy: ${context.mentalEnergy}`,
+    `Cultural values: ${context.culturalValues}`,
   ];
 
   if (context.isTypingOther && context.otherPersonName) {
@@ -76,6 +117,7 @@ function buildUserPrompt(req: PersonalizeRequest): string {
     category: q.category,
     text: q.text,
     options: q.options.map((o) => ({ id: o.id, text: o.text })),
+    ...(q.previousVersions?.length ? { previousVersions: q.previousVersions } : {}),
   }));
 
   return `Person's context:\n${contextLines.map((l) => `- ${l}`).join('\n')}\n\nRewrite these ${questions.length} questions:\n${JSON.stringify(strippedQuestions)}`;

@@ -793,16 +793,16 @@ export const CORE_QUESTIONS: Question[] = [
     id: 'c2-05',
     primaryAxis: ['Ne', 'Se'],
     category: 'default-vs-forced',
-    text: 'On a completely free day with nothing to do, you\'d rather:',
+    text: 'When you\'re exploring somewhere you\'ve never been before, you naturally:',
     options: [
       {
         id: 'c2-05-a',
-        text: 'Explore ideas — read, go down internet rabbit holes, brainstorm, and follow your curiosity wherever it goes.',
+        text: 'Start wondering about everything — what\'s down that street, who lives here, what this place could become. Your mind races ahead of your feet.',
         functionWeights: { Ne: 2 },
       },
       {
         id: 'c2-05-b',
-        text: 'Get out and do stuff — try a new place, cook something, play a sport, or just be active.',
+        text: 'Soak it all in — the sounds, the smells, the food, the energy. You\'re fully locked in to whatever\'s happening right in front of you.',
         functionWeights: { Se: 2 },
       },
     ],
@@ -1292,16 +1292,16 @@ export const CORE_QUESTIONS: Question[] = [
     id: 'c3-07',
     primaryAxis: ['Ti', 'Te'],
     category: 'default-vs-forced',
-    text: 'Imagine you suddenly have a month off with nothing to do. You\'d probably spend it:',
+    text: 'When you\'re learning something purely because you\'re curious — no test, no reason — you:',
     options: [
       {
         id: 'c3-07-a2',
-        text: 'Going deep on something you\'ve always wanted to understand — picking apart how things work just for the satisfaction of knowing.',
+        text: 'Want to really understand it — you dig into the theory, question the logic, and don\'t move on until it actually clicks.',
         functionWeights: { Ti: 2 },
       },
       {
         id: 'c3-07-b2',
-        text: 'Getting stuff done you\'ve been putting off — building something, organizing your life, producing something tangible.',
+        text: 'Want to do something with it — you jump to practice, build something, or apply it right away to see if it works.',
         functionWeights: { Te: 2 },
       },
     ],
@@ -1659,16 +1659,16 @@ export const CORE_QUESTIONS: Question[] = [
     id: 'c4-03',
     primaryAxis: ['Ni', 'Si'],
     category: 'default-vs-forced',
-    text: 'When you\'re sitting with nothing to do, your mind usually drifts to:',
+    text: 'When you think about a major change in your life — a move, a breakup, a new job — you focus on:',
     options: [
       {
         id: 'c4-03-a',
-        text: 'The future and "what could be" — you picture possibilities or try to figure out the deeper meaning of things.',
+        text: 'What it all meant — the bigger pattern, where it was leading, and how it connects to where you are now.',
         functionWeights: { Ni: 2 },
       },
       {
         id: 'c4-03-b',
-        text: 'The past and memories — you replay old moments, remember specific details, and revisit things that happened.',
+        text: 'Specific moments — conversations, details, exactly how things looked and felt at the time.',
         functionWeights: { Si: 2 },
       },
     ],
@@ -1748,16 +1748,16 @@ export const CORE_QUESTIONS: Question[] = [
     id: 'c4-07',
     primaryAxis: ['Ni', 'Ne'],
     category: 'default-vs-forced',
-    text: 'When you\'re completely free to think about anything — no task, no problem to solve — your brain naturally:',
+    text: 'When you\'re working on something creative with no rules or deadline, you tend to:',
     options: [
       {
         id: 'c4-07-a2',
-        text: 'Keeps circling back to one big question or vision — you\'re always trying to see it more clearly.',
+        text: 'Keep refining one central idea — trimming, sharpening, going deeper until it feels exactly right.',
         functionWeights: { Ni: 2 },
       },
       {
         id: 'c4-07-b2',
-        text: 'Keeps generating new ideas and connections — you can\'t stop jumping to the next "what if?"',
+        text: 'Keep spawning new directions — every version leads to three more ideas and you\'re excited by all of them.',
         functionWeights: { Ne: 2 },
       },
     ],

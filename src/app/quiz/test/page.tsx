@@ -14,8 +14,10 @@ import { useHydration } from '@/hooks/useHydration';
 import { CORE_QUESTIONS } from '@/engine/questions/question-bank';
 import { usePersonalizedQuestions } from '@/hooks/usePersonalizedQuestions';
 import { shouldTriggerAdaptive } from '@/engine/questions/question-selector';
-import { fetchRefreshedQuestion } from '@/lib/personalize';
+import { fetchRefreshedQuestion, buildExtraOptions } from '@/lib/personalize';
+import { getQuestionsByChunk } from '@/engine/questions/question-bank';
 import type { Answer } from '@/types/questions';
+import type { PreviousVersion } from '@/types/ai-questions';
 import { QUESTIONS_PER_CHUNK, TOTAL_CHUNKS, getAmbiguityThreshold } from '@/lib/constants';
 
 const CHECK_IN_AFTER_CHUNK = 2; // Show check-in after completing chunk 2 (halfway)
@@ -40,6 +42,7 @@ export default function TestPage() {
 
   const context = useContextStore((s) => s.context);
   const refreshingIds = useAIQuestionsStore((s) => s.refreshingQuestionIds);
+  const storeExtraOptions = useAIQuestionsStore((s) => s.extraOptions);
 
   // Get current chunk's questions (AI personalized → static variant → base)
   // All 4 chunks are fetched in parallel from the context page
@@ -47,6 +50,8 @@ export default function TestPage() {
 
   const currentQuestion = chunkQuestions[currentQuestionIndex];
   const isRefreshing = currentQuestion ? refreshingIds.includes(currentQuestion.id) : false;
+  const extraCount = currentQuestion ? (storeExtraOptions[currentQuestion.id]?.length ?? 0) : 0;
+  const canGenerateMore = extraCount < 4; // cap at 3 generations (6 total options)
 
   // Overall progress
   const totalAnswered = answers.length;
@@ -103,17 +108,44 @@ export default function TestPage() {
 
     const questionId = currentQuestion.id;
     const store = useAIQuestionsStore.getState();
+
+    // Cap at 3 generations (6 total options)
+    const existingExtras = store.extraOptions[questionId]?.length ?? 0;
+    if (existingExtras >= 4) return;
+
     store.setQuestionRefreshing(questionId, true);
 
-    fetchRefreshedQuestion(questionId, currentChunk, context, AbortSignal.timeout(30_000))
+    // Collect all previously shown option texts so the AI avoids repeating them
+    const previousVersions: PreviousVersion[] = [];
+    const currentPersonalized = store.personalizedChunks[currentChunk]?.find((q) => q.id === questionId);
+    if (currentPersonalized) {
+      previousVersions.push({
+        text: currentPersonalized.text,
+        options: [{ text: currentPersonalized.options[0].text }, { text: currentPersonalized.options[1].text }],
+      });
+    }
+    // Add extra option pairs as previous versions
+    const extras = store.extraOptions[questionId] ?? [];
+    for (let i = 0; i < extras.length; i += 2) {
+      previousVersions.push({
+        text: currentPersonalized?.text ?? '',
+        options: [{ text: extras[i].text }, { text: extras[i + 1].text }],
+      });
+    }
+
+    const baseQuestion = getQuestionsByChunk(currentChunk).find((q) => q.id === questionId)!;
+    const genIndex = existingExtras / 2 + 1;
+
+    fetchRefreshedQuestion(questionId, currentChunk, context, previousVersions, AbortSignal.timeout(30_000))
       .then((refreshed) => {
-        useAIQuestionsStore.getState().updateSingleQuestion(currentChunk, refreshed);
+        const newOptions = buildExtraOptions(baseQuestion, refreshed, genIndex);
+        useAIQuestionsStore.getState().appendExtraOptions(questionId, newOptions);
       })
       .catch((err) => {
         if (err instanceof DOMException && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
-          console.warn(`[AI Questions] Refresh ${questionId}: timed out`);
+          console.warn(`[AI Questions] More options ${questionId}: timed out`);
         } else {
-          console.error(`[AI Questions] Refresh ${questionId}: failed:`, err);
+          console.error(`[AI Questions] More options ${questionId}: failed:`, err);
         }
       })
       .finally(() => {
@@ -180,7 +212,7 @@ export default function TestPage() {
               totalQuestions={totalQuestions}
               onAnswer={handleAnswer}
               onBack={totalAnswered > 0 ? goBack : undefined}
-              onRefresh={context ? handleRefresh : undefined}
+              onRefresh={context && canGenerateMore ? handleRefresh : undefined}
               isRefreshing={isRefreshing}
             />
           </div>

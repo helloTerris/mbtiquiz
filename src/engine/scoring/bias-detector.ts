@@ -295,5 +295,66 @@ export function detectBias(
     }
   }
 
+  // Mental state bias
+  if (context?.mentalEnergy === 'anxious' && normalizedScores.globalNormalized['Ni'] >= 70) {
+    indicators.push({
+      type: 'mental-state',
+      description:
+        'You mentioned your mind is racing and overthinking. That anxious state can look a lot like strong Ni (focused intuition) — the pattern-seeing might be anxiety-driven rather than your natural wiring.',
+      affectedFunctions: ['Ni'],
+      magnitude: 0.4,
+    });
+  }
+
+  if (context?.mentalEnergy === 'scattered' && normalizedScores.globalNormalized['Ne'] >= 70) {
+    indicators.push({
+      type: 'mental-state',
+      description:
+        'You said your mind feels scattered and restless. That can inflate Ne (idea exploration) scores — jumping between ideas might be restlessness rather than genuine divergent thinking.',
+      affectedFunctions: ['Ne'],
+      magnitude: 0.35,
+    });
+  }
+
+  if (context?.mentalEnergy === 'low') {
+    const seScore = normalizedScores.globalNormalized['Se'];
+    const neScore = normalizedScores.globalNormalized['Ne'];
+    if (seScore <= 30 && neScore <= 30) {
+      indicators.push({
+        type: 'mental-state',
+        description:
+          'You mentioned low energy and motivation. That can suppress your perceiving functions (Se and Ne) — you might score higher on these when you\'re feeling more like yourself.',
+        affectedFunctions: ['Se', 'Ne'],
+        magnitude: 0.3,
+      });
+    }
+  }
+
+  // Cultural conditioning bias
+  if (context?.culturalValues === 'collectivist' && normalizedScores.globalNormalized['Fe'] >= 65) {
+    indicators.push({
+      type: 'cultural-conditioning',
+      description:
+        'You grew up in a group-harmony culture, and your Fe (social harmony) scores are high. That might be trained behavior from your upbringing rather than your natural wiring.',
+      affectedFunctions: ['Fe'],
+      magnitude: 0.3,
+    });
+  }
+
+  if (context?.culturalValues === 'individualist') {
+    const flagged: CognitiveFunction[] = [];
+    if (normalizedScores.globalNormalized['Fi'] >= 65) flagged.push('Fi');
+    if (normalizedScores.globalNormalized['Te'] >= 65) flagged.push('Te');
+    if (flagged.length > 0) {
+      indicators.push({
+        type: 'cultural-conditioning',
+        description:
+          `You grew up valuing individual achievement, and your ${flagged.join('/')} scores are high. That could be culturally trained independence rather than pure natural preference.`,
+        affectedFunctions: flagged,
+        magnitude: 0.3,
+      });
+    }
+  }
+
   return indicators;
 }

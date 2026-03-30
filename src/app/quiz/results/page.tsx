@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'motion/react';
 import { TypeCard } from '@/components/results/TypeCard';
 import { FunctionBars } from '@/components/results/FunctionBars';
@@ -22,31 +22,58 @@ import { generateResult } from '@/engine/results/result-generator';
 import { CORE_QUESTIONS } from '@/engine/questions/question-bank';
 import { selectAdaptiveQuestions } from '@/engine/questions/adaptive-questions';
 import { getAmbiguityThreshold } from '@/lib/constants';
+import { decodeResult, encodeResult } from '@/lib/share-codec';
+import { reconstructSharedResult } from '@/lib/share-reconstructor';
 import type { CognitiveFunction } from '@/types/cognitive-functions';
 
-export default function ResultsPage() {
+export default function ResultsPageWrapper() {
+  return (
+    <Suspense fallback={
+      <main className="flex-1 flex items-center justify-center">
+        <div className="text-muted">Loading results...</div>
+      </main>
+    }>
+      <ResultsPage />
+    </Suspense>
+  );
+}
+
+function ResultsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const hydrated = useHydration();
   const { answers, normalizedScores, reset: resetQuiz } = useQuizStore();
   const context = useContextStore((s) => s.context);
   const { result: storedResult, setResult } = useResultsStore();
+  const [copied, setCopied] = useState(false);
+
+  // Check for shared result in URL
+  const sharedResult = useMemo(() => {
+    const encoded = searchParams.get('r');
+    if (!encoded) return null;
+    const decoded = decodeResult(encoded);
+    if (!decoded) return null;
+    return reconstructSharedResult(decoded.scores, decoded.type, decoded.confidence);
+  }, [searchParams]);
 
   const hasAdaptiveQuestions = useMemo(() => {
+    if (sharedResult) return false; // shared view never shows refine
     if (!normalizedScores) return false;
     const answeredIds = new Set(answers.map((a) => a.questionId));
     const threshold = getAmbiguityThreshold(context?.lifeStage);
     return selectAdaptiveQuestions(normalizedScores, answeredIds, 5, threshold).length > 0;
-  }, [normalizedScores, answers, context?.lifeStage]);
+  }, [sharedResult, normalizedScores, answers, context?.lifeStage]);
 
   const result = useMemo(() => {
+    if (sharedResult) return sharedResult;
     if (storedResult) return storedResult;
     if (answers.length === 0) return null;
     return generateResult(answers, CORE_QUESTIONS, context);
-  }, [answers, context, storedResult]);
+  }, [sharedResult, answers, context, storedResult]);
 
   // Persist generated result to store (outside render to avoid setState-during-render)
   useEffect(() => {
-    if (result && !storedResult) {
+    if (result && !storedResult && !result.isShared) {
       setResult(result);
     }
   }, [result, storedResult, setResult]);
@@ -57,6 +84,22 @@ export default function ResultsPage() {
     useContextStore.getState().clear();
     router.push('/');
   };
+
+  const handleShare = () => {
+    if (!result) return;
+    const encoded = encodeResult(
+      result.functionScores as Record<CognitiveFunction, number>,
+      result.primaryType.type,
+      result.confidence.overall
+    );
+    const url = `${window.location.origin}/quiz/results?r=${encoded}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const isShared = result?.isShared === true;
 
   if (!hydrated) {
     return (
@@ -80,13 +123,36 @@ export default function ResultsPage() {
   return (
     <main className="flex-1 px-4 py-8 md:py-12">
       <div className="max-w-3xl mx-auto space-y-6">
+        {/* Shared banner */}
+        {isShared && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass rounded-2xl p-4 border border-cyan-500/20 text-center"
+          >
+            <p className="text-sm text-cyan-400">
+              You&apos;re viewing a shared result
+            </p>
+            <Button
+              variant="primary"
+              size="sm"
+              className="mt-2"
+              onClick={() => router.push('/')}
+            >
+              Take the Test Yourself
+            </Button>
+          </motion.div>
+        )}
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-4"
         >
-          <p className="text-sm font-mono text-muted">Here&apos;s what we found</p>
+          <p className="text-sm font-mono text-muted">
+            {isShared ? 'Shared cognitive profile' : 'Here\'s what we found'}
+          </p>
         </motion.div>
 
         {/* Primary type card */}
@@ -191,8 +257,8 @@ export default function ResultsPage() {
           </motion.div>
         )}
 
-        {/* True self comparison */}
-        {result.trueSelfAnalysis && (
+        {/* True self comparison — hidden on shared view */}
+        {!isShared && result.trueSelfAnalysis && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -202,8 +268,8 @@ export default function ResultsPage() {
           </motion.div>
         )}
 
-        {/* Bias indicators */}
-        {result.biasIndicators.length > 0 && (
+        {/* Bias indicators — hidden on shared view */}
+        {!isShared && result.biasIndicators.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -213,8 +279,8 @@ export default function ResultsPage() {
           </motion.div>
         )}
 
-        {/* Contradictions warning */}
-        {result.contradictions.length > 0 && (
+        {/* Contradictions warning — hidden on shared view */}
+        {!isShared && result.contradictions.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -244,21 +310,32 @@ export default function ResultsPage() {
           transition={{ delay: 0.95 }}
           className="flex flex-col items-center gap-3 pt-4 pb-8"
         >
-          <div className="flex flex-row gap-3">
-            {hasAdaptiveQuestions && (
-              <Button
-                variant="primary"
-                onClick={() => router.push('/quiz/refine')}
-              >
-                Improve My Results
-              </Button>
-            )}
-            <Button variant="secondary" onClick={handleRetake}>
-              Retake Test
+          {isShared ? (
+            <Button variant="primary" onClick={() => router.push('/')}>
+              Take the Test Yourself
             </Button>
-          </div>
-          {!hasAdaptiveQuestions && (
-            <p className="text-xs text-muted">Your scores are already clear — no close calls to refine.</p>
+          ) : (
+            <>
+              <div className="flex flex-row gap-3">
+                {hasAdaptiveQuestions && (
+                  <Button
+                    variant="primary"
+                    onClick={() => router.push('/quiz/refine')}
+                  >
+                    Improve My Results
+                  </Button>
+                )}
+                <Button variant="secondary" onClick={handleShare}>
+                  {copied ? 'Link Copied!' : 'Share Results'}
+                </Button>
+                <Button variant="secondary" onClick={handleRetake}>
+                  Retake Test
+                </Button>
+              </div>
+              {!hasAdaptiveQuestions && (
+                <p className="text-xs text-muted">Your scores are already clear — no close calls to refine.</p>
+              )}
+            </>
           )}
         </motion.div>
       </div>

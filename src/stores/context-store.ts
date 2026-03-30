@@ -19,19 +19,24 @@ export const useContextStore = create<ContextState>()(
     }),
     {
       name: 'cognitivtype-context',
-      version: 3,
+      version: 5,
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as { context: Record<string, unknown> | null };
         if (version < 2 && state?.context) {
-          // Add defaults for new fields introduced in v2
           state.context.workEnvironment = state.context.workEnvironment ?? 'na';
           state.context.livingSituation = state.context.livingSituation ?? 'partner-family';
           state.context.stressLevel = state.context.stressLevel ?? 'moderate';
         }
         if (version < 3 && state?.context) {
-          // v3: detail fields default to undefined (optional)
           state.context.lifeStageDetail = state.context.lifeStageDetail ?? undefined;
           state.context.workEnvironmentDetail = state.context.workEnvironmentDetail ?? undefined;
+        }
+        if (version < 4 && state?.context) {
+          state.context.hobbies = state.context.hobbies ?? undefined;
+        }
+        if (version < 5 && state?.context) {
+          state.context.mentalEnergy = state.context.mentalEnergy ?? 'clear';
+          state.context.culturalValues = state.context.culturalValues ?? 'mixed';
         }
         return state as ContextState;
       },

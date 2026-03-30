@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 import type { PersonalizedQuestionOutput } from '@/types/ai-questions';
+import type { ChoiceOption } from '@/types/questions';
 
 interface AIQuestionsState {
   /** Personalized questions keyed by chunk number */
@@ -12,12 +13,17 @@ interface AIQuestionsState {
   failedChunks: number[];
   /** Question IDs currently being refreshed */
   refreshingQuestionIds: string[];
+  /** Previous AI versions per question ID (for refresh dedup) */
+  refreshHistory: Record<string, PersonalizedQuestionOutput[]>;
+  /** Extra options appended via "More options" per question ID */
+  extraOptions: Record<string, ChoiceOption[]>;
 
   setChunkQuestions: (chunk: number, questions: PersonalizedQuestionOutput[]) => void;
   setChunkLoading: (chunk: number, loading: boolean) => void;
   setChunkFailed: (chunk: number) => void;
   setQuestionRefreshing: (id: string, refreshing: boolean) => void;
   updateSingleQuestion: (chunk: number, question: PersonalizedQuestionOutput) => void;
+  appendExtraOptions: (questionId: string, options: ChoiceOption[]) => void;
   reset: () => void;
 }
 
@@ -26,6 +32,8 @@ export const useAIQuestionsStore = create<AIQuestionsState>()((set) => ({
   loadingChunks: [],
   failedChunks: [],
   refreshingQuestionIds: [],
+  refreshHistory: {},
+  extraOptions: {},
 
   setChunkQuestions: (chunk, questions) =>
     set((state) => ({
@@ -56,13 +64,30 @@ export const useAIQuestionsStore = create<AIQuestionsState>()((set) => ({
   updateSingleQuestion: (chunk, question) =>
     set((state) => {
       const existing = state.personalizedChunks[chunk] ?? [];
-      const updated = existing.some((q) => q.id === question.id)
+      const oldVersion = existing.find((q) => q.id === question.id);
+      const updated = oldVersion
         ? existing.map((q) => (q.id === question.id ? question : q))
         : [...existing, question];
+
+      // Auto-track old version in refresh history
+      const history = { ...state.refreshHistory };
+      if (oldVersion) {
+        history[question.id] = [...(history[question.id] ?? []), oldVersion];
+      }
+
       return {
         personalizedChunks: { ...state.personalizedChunks, [chunk]: updated },
+        refreshHistory: history,
       };
     }),
+
+  appendExtraOptions: (questionId, options) =>
+    set((state) => ({
+      extraOptions: {
+        ...state.extraOptions,
+        [questionId]: [...(state.extraOptions[questionId] ?? []), ...options],
+      },
+    })),
 
   reset: () =>
     set({
@@ -70,5 +95,7 @@ export const useAIQuestionsStore = create<AIQuestionsState>()((set) => ({
       loadingChunks: [],
       failedChunks: [],
       refreshingQuestionIds: [],
+      refreshHistory: {},
+      extraOptions: {},
     }),
 }));

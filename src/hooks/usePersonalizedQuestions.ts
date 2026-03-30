@@ -22,6 +22,7 @@ export function usePersonalizedQuestions(chunk: number): {
   const personalizedChunks = useAIQuestionsStore((s) => s.personalizedChunks);
   const loadingChunks = useAIQuestionsStore((s) => s.loadingChunks);
   const failedChunks = useAIQuestionsStore((s) => s.failedChunks);
+  const extraOptions = useAIQuestionsStore((s) => s.extraOptions);
 
   // Derive booleans from raw state (in render, not in selector)
   const isReady = chunk in personalizedChunks;
@@ -67,21 +68,24 @@ export function usePersonalizedQuestions(chunk: number): {
   const questions = useMemo(() => {
     const base = getQuestionsByChunk(chunk);
 
+    let merged: Question[];
+
     // Best: AI personalized
     if (isReady && personalizedChunks[chunk]) {
-      console.log(`[AI Questions] Chunk ${chunk}: using AI-personalized questions`);
-      return mergePersonalized(base, personalizedChunks[chunk]);
+      merged = mergePersonalized(base, personalizedChunks[chunk]);
+    } else if (!context) {
+      merged = base;
+    } else {
+      merged = base.map((q) => adaptQuestion(q, context));
     }
 
-    // Fallback: static contextVariants
-    if (!context) {
-      console.log(`[AI Questions] Chunk ${chunk}: no context, using base questions`);
-      return base;
-    }
-
-    console.log(`[AI Questions] Chunk ${chunk}: using static contextVariants fallback (ready=${isReady}, loading=${isLoading}, failed=${hasFailed})`);
-    return base.map((q) => adaptQuestion(q, context));
-  }, [chunk, isReady, personalizedChunks, context, isLoading, hasFailed]);
+    // Append extra options from "More options" clicks
+    return merged.map((q) => {
+      const extras = extraOptions[q.id];
+      if (!extras || extras.length === 0) return q;
+      return { ...q, options: [...q.options, ...extras] };
+    });
+  }, [chunk, isReady, personalizedChunks, context, isLoading, hasFailed, extraOptions]);
 
   return { questions, isLoading };
 }

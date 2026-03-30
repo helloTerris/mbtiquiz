@@ -20,7 +20,7 @@ export interface ContextVariant {
   lifeStage?: LifeStage;
   workEnvironment?: WorkEnvironment;
   questionText: string;
-  options: [ChoiceOption, ChoiceOption];
+  options: ChoiceOption[];
 }
 
 export interface Question {
@@ -28,7 +28,7 @@ export interface Question {
   primaryAxis: [CognitiveFunction, CognitiveFunction];
   category: QuestionCategory;
   text: string;
-  options: [ChoiceOption, ChoiceOption];
+  options: ChoiceOption[];
   contextVariants?: ContextVariant[];
   redundancyOf?: string;
   ambiguityThreshold?: number;

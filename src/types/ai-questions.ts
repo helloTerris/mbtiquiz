@@ -1,6 +1,12 @@
 import type { CognitiveFunction } from './cognitive-functions';
 import type { QuestionCategory } from './questions';
 
+/** A previously shown version of a question (for refresh dedup) */
+export interface PreviousVersion {
+  text: string;
+  options: [{ text: string }, { text: string }];
+}
+
 /** Stripped-down question sent to the API — no functionWeights for security */
 export interface QuestionForAI {
   id: string;
@@ -8,6 +14,7 @@ export interface QuestionForAI {
   category: QuestionCategory;
   text: string;
   options: [{ id: string; text: string }, { id: string; text: string }];
+  previousVersions?: PreviousVersion[];
 }
 
 /** Context projection for the AI — excludes scoring-only fields */
@@ -19,7 +26,10 @@ export interface AIContext {
   dailyStructure: string;
   socialExposure: string;
   livingSituation: string;
+  hobbies?: string;
   stressLevel: string;
+  mentalEnergy: string;
+  culturalValues: string;
   isTypingOther: boolean;
   otherPersonName?: string;
 }
