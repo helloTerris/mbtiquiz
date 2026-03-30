@@ -16,6 +16,15 @@ FUNCTION REFERENCE (what each axis measures):
 
 Option A always maps to the FIRST function in primaryAxis, Option B to the SECOND. Preserve this exactly.
 
+CATEGORY tells you the life domain to frame the question around:
+- social-interaction → frame around people, groups, relationships
+- decision-making → frame around choices, tradeoffs, judgments
+- information-processing → frame around learning, thinking, absorbing info
+- work-style → frame around how they work, organize, produce
+- inner-world → frame around private thoughts, feelings, downtime
+- stress-response → frame around pressure, overwhelm, bad days
+- default-vs-forced → frame around what they do with zero obligation
+
 RULES:
 1. Rewrite the question stem using scenarios from the person's actual daily life.
 2. Rewrite options using language and examples from their reality. Both options must feel equally valid and appealing — no "right answer."
@@ -49,6 +58,7 @@ function buildUserPrompt(req: PersonalizeRequest): string {
   const strippedQuestions = questions.map((q) => ({
     id: q.id,
     primaryAxis: q.primaryAxis,
+    category: q.category,
     text: q.text,
     options: q.options.map((o) => ({ id: o.id, text: o.text })),
   }));
