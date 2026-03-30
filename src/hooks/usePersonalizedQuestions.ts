@@ -118,7 +118,7 @@ export function prefetchChunk(chunk: number): void {
   store.setChunkLoading(chunk, true);
 
   const controller = new AbortController();
-  setTimeout(() => controller.abort(), 8000);
+  setTimeout(() => controller.abort(), 30000);
 
   fetchPersonalizedChunk(chunk, context, controller.signal)
     .then((questions) => {
