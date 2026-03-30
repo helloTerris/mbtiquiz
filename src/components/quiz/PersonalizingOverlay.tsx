@@ -30,7 +30,7 @@ export function PersonalizingOverlay() {
           Tailoring questions to your situation...
         </h3>
         <p className="text-sm text-muted">
-          This takes just a moment
+          This can take up to 20 seconds
         </p>
       </motion.div>
     </motion.div>

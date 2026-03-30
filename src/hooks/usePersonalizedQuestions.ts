@@ -40,7 +40,7 @@ export function usePersonalizedQuestions(chunk: number): {
     useAIQuestionsStore.getState().setChunkLoading(chunk, true);
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), 30000);
 
     fetchPersonalizedChunk(chunk, context, controller.signal)
       .then((questions) => {

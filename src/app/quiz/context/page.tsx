@@ -33,7 +33,7 @@ export default function ContextPage() {
 
     // Generate chunk 1 with timeout
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    const timeout = setTimeout(() => controller.abort(), 30000);
 
     try {
       const questions = await fetchPersonalizedChunk(1, context, controller.signal);
