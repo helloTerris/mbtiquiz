@@ -41,6 +41,7 @@ const WORK_ENV_DETAIL_PLACEHOLDERS: Partial<Record<WorkEnvironment, string>> = {
   creative: 'e.g., UX design agency, music production',
   service: 'e.g., hospital nursing, elementary school',
   technical: 'e.g., data science team, mechanical engineering',
+  other: 'e.g., military, agriculture, government',
 };
 
 const WORK_ENVIRONMENTS: { value: WorkEnvironment; label: string; desc: string; icon: string }[] = [
@@ -49,6 +50,7 @@ const WORK_ENVIRONMENTS: { value: WorkEnvironment; label: string; desc: string; 
   { value: 'creative', label: 'Creative / Artistic', desc: 'Design, writing, art, music', icon: '\u{1F3A8}' },
   { value: 'service', label: 'Service / Caregiving', desc: 'Healthcare, education, social work', icon: '\u{1F91D}' },
   { value: 'technical', label: 'Technical / Analytical', desc: 'Engineering, science, data', icon: '\u{1F52C}' },
+  { value: 'other', label: 'Other', desc: 'None of these fit', icon: '\u{2728}' },
 ];
 
 const STRUCTURES = [
@@ -178,8 +180,14 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
 
   const canProceed = () => {
     switch (step) {
-      case 'lifeStage': return lifeStage !== null;
-      case 'workEnv': return workEnv !== null;
+      case 'lifeStage':
+        if (!lifeStage) return false;
+        if (lifeStage === 'other' && !lifeStageDetail.trim()) return false;
+        return true;
+      case 'workEnv':
+        if (!workEnv) return false;
+        if (workEnv === 'other' && !workEnvDetail.trim()) return false;
+        return true;
       case 'structure': return structure !== null;
       case 'socialAndLiving': return social !== null && livingSituation !== null;
       case 'upbringingAndStress': return upbringing !== null && stressLevel !== null;
@@ -295,7 +303,9 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
                       className="overflow-hidden"
                     >
                       <label className="block text-sm text-muted mt-4 mb-2">
-                        Tell us more <span className="text-muted/50">(optional)</span>
+                        Tell us more {lifeStage === 'other'
+                          ? <span className="text-accent-bright">(required)</span>
+                          : <span className="text-muted/50">(optional)</span>}
                       </label>
                       <input
                         type="text"
@@ -332,7 +342,9 @@ export function ContextForm({ onSubmit }: ContextFormProps) {
                       className="overflow-hidden"
                     >
                       <label className="block text-sm text-muted mt-4 mb-2">
-                        What specifically? <span className="text-muted/50">(optional)</span>
+                        What specifically? {workEnv === 'other'
+                          ? <span className="text-accent-bright">(required)</span>
+                          : <span className="text-muted/50">(optional)</span>}
                       </label>
                       <input
                         type="text"

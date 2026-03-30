@@ -14,6 +14,7 @@ export type WorkEnvironment =
   | 'creative'
   | 'service'
   | 'technical'
+  | 'other'
   | 'na';
 
 export type LivingSituation = 'alone' | 'partner-family' | 'roommates';
