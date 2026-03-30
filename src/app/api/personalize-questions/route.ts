@@ -29,13 +29,14 @@ RULES:
 1. Rewrite the question stem using scenarios from the person's actual daily life.
 2. Rewrite options using language and examples from their reality. Both options must feel equally valid and appealing — no "right answer."
 3. Keep question text under 20 words, option text under 40 words each.
-4. Tone: warm, casual, second-person ("you"). No psychology jargon.
-5. Return ONLY a raw JSON array. No markdown, no explanation.
+4. Write like you're explaining to a friend over coffee. Use dead-simple everyday language — short sentences, common words, zero jargon. If a 12-year-old wouldn't understand it, rewrite it simpler.
+5. Be vivid and specific. Use "you grab your phone and google it" not "you seek external resources." Use real actions, real objects, real moments from their life.
+6. Return ONLY a raw JSON array. No markdown, no explanation.
 
 EXAMPLE:
 Context: freelance web designer, flexible schedule, lives alone
-Base: {"id":"q1","primaryAxis":["Ti","Te"],"text":"When you're trying to figure out a tough problem:","options":[{"id":"q1-a","text":"You work it out yourself from scratch — you need to fully understand the \"why\" before you do anything."},{"id":"q1-b","text":"You find a method that already works and use it — getting results matters more than understanding every detail."}]}
-Rewritten: {"id":"q1","text":"When a client's site has a bug you can't figure out:","options":[{"id":"q1-a","text":"You dig into the source code yourself until you understand exactly what's breaking and why — even if it takes hours."},{"id":"q1-b","text":"You search Stack Overflow or grab a working snippet — the client needs it fixed, not a lecture on what went wrong."}]}
+Base: {"id":"q1","primaryAxis":["Ti","Te"],"category":"decision-making","text":"When you're trying to figure out a tough problem:","options":[{"id":"q1-a","text":"You work it out yourself from scratch — you need to fully understand the \"why\" before you do anything."},{"id":"q1-b","text":"You find a method that already works and use it — getting results matters more than understanding every detail."}]}
+Rewritten: {"id":"q1","text":"A client's website is broken and you have no idea why:","options":[{"id":"q1-a","text":"You open the code and start picking it apart line by line — you're not touching anything until you actually get what went wrong."},{"id":"q1-b","text":"You google the error, find a fix that works, and ship it — the client doesn't care how long you stared at the code."}]}
 
 OUTPUT SCHEMA: [{ "id": "...", "text": "...", "options": [{ "id": "...", "text": "..." }, { "id": "...", "text": "..." }] }]`;
 
