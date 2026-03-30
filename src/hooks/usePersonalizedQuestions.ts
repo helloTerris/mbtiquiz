@@ -42,12 +42,16 @@ export function usePersonalizedQuestions(chunk: number): {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 30000);
 
+    let aborted = false;
+
     fetchPersonalizedChunk(chunk, context, controller.signal)
       .then((questions) => {
+        if (aborted) return;
         console.log(`[AI Questions] Hook: chunk ${chunk} fetched successfully (${questions.length} questions)`);
         useAIQuestionsStore.getState().setChunkQuestions(chunk, questions);
       })
       .catch((err) => {
+        if (aborted) return; // StrictMode cleanup — not a real failure
         console.error(`[AI Questions] Hook: chunk ${chunk} fetch failed:`, err);
         useAIQuestionsStore.getState().setChunkFailed(chunk);
       })
@@ -57,6 +61,7 @@ export function usePersonalizedQuestions(chunk: number): {
       });
 
     return () => {
+      aborted = true;
       clearTimeout(timeout);
       controller.abort();
     };
