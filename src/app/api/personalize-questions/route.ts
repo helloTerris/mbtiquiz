@@ -4,20 +4,29 @@ import type { PersonalizeRequest, PersonalizeResponse, PersonalizedQuestionOutpu
 const client = new Anthropic();
 
 const SYSTEM_PROMPT = `You are a question personalization engine for a cognitive function assessment.
-Your job is to rewrite question and option text so it feels personally relevant to the test-taker based on their life context.
+Rewrite question and option text so it feels personally relevant to the test-taker.
+
+FUNCTION REFERENCE (what each axis measures):
+- Ti/Te: Internal logical analysis vs external systematic execution
+- Fi/Fe: Personal values/authenticity vs group harmony/emotional awareness
+- Ni/Ne: Focused singular insight vs divergent idea exploration
+- Si/Se: Past experience/routine vs present-moment sensory engagement
+
+Option A always maps to the FIRST function in primaryAxis, Option B to the SECOND. Preserve this exactly.
 
 RULES:
-1. Preserve the psychological meaning EXACTLY. Each option tests a specific cognitive pattern (shown in primaryAxis). Option A must still clearly represent the first function, Option B the second function.
-2. Rewrite the question stem to use scenarios from the person's actual life.
-3. Rewrite each option to use language and examples from their daily reality.
-4. Keep option text roughly the same length as the original (under 40 words each).
-5. Keep the tone warm, casual, and second-person ("you").
-6. Never reference MBTI, cognitive functions, personality types, or psychology terminology.
-7. Never make one option sound better or more desirable than the other.
-8. Return ONLY valid JSON matching the schema below. No markdown, no explanation, no wrapping.
+1. Rewrite the question stem using scenarios from the person's actual daily life.
+2. Rewrite options using language and examples from their reality. Both options must feel equally valid and appealing — no "right answer."
+3. Keep question text under 20 words, option text under 40 words each.
+4. Tone: warm, casual, second-person ("you"). No psychology jargon.
+5. Return ONLY a raw JSON array. No markdown, no explanation.
 
-Output schema (JSON array):
-[{ "id": "original-id", "text": "rewritten question", "options": [{ "id": "original-option-id", "text": "rewritten option A" }, { "id": "original-option-id", "text": "rewritten option B" }] }]`;
+EXAMPLE:
+Context: freelance web designer, flexible schedule, lives alone
+Base: {"id":"q1","primaryAxis":["Ti","Te"],"text":"When you're trying to figure out a tough problem:","options":[{"id":"q1-a","text":"You work it out yourself from scratch — you need to fully understand the \"why\" before you do anything."},{"id":"q1-b","text":"You find a method that already works and use it — getting results matters more than understanding every detail."}]}
+Rewritten: {"id":"q1","text":"When a client's site has a bug you can't figure out:","options":[{"id":"q1-a","text":"You dig into the source code yourself until you understand exactly what's breaking and why — even if it takes hours."},{"id":"q1-b","text":"You search Stack Overflow or grab a working snippet — the client needs it fixed, not a lecture on what went wrong."}]}
+
+OUTPUT SCHEMA: [{ "id": "...", "text": "...", "options": [{ "id": "...", "text": "..." }, { "id": "...", "text": "..." }] }]`;
 
 function buildUserPrompt(req: PersonalizeRequest): string {
   const { context, questions } = req;
@@ -38,12 +47,11 @@ function buildUserPrompt(req: PersonalizeRequest): string {
   const strippedQuestions = questions.map((q) => ({
     id: q.id,
     primaryAxis: q.primaryAxis,
-    category: q.category,
     text: q.text,
     options: q.options.map((o) => ({ id: o.id, text: o.text })),
   }));
 
-  return `Person's context:\n${contextLines.map((l) => `- ${l}`).join('\n')}\n\nRewrite these ${questions.length} questions for this person:\n\n${JSON.stringify(strippedQuestions, null, 2)}`;
+  return `Person's context:\n${contextLines.map((l) => `- ${l}`).join('\n')}\n\nRewrite these ${questions.length} questions:\n${JSON.stringify(strippedQuestions)}`;
 }
 
 /** Extract JSON from AI response — handles raw JSON, markdown code blocks, and object wrappers */
@@ -172,14 +180,21 @@ export async function POST(request: Request): Promise<Response> {
 
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
+      max_tokens: 2048,
       temperature: 0.7,
-      system: SYSTEM_PROMPT,
+      system: [
+        {
+          type: 'text' as const,
+          text: SYSTEM_PROMPT,
+          cache_control: { type: 'ephemeral' as const },
+        },
+      ],
       messages: [{ role: 'user', content: userPrompt }],
     });
 
     const elapsed = Date.now() - startTime;
-    console.log(`[API] Claude responded in ${elapsed}ms — stop_reason: ${response.stop_reason}, usage:`, response.usage);
+    console.log(`[API] Claude responded in ${elapsed}ms — stop_reason: ${response.stop_reason}`);
+    console.log(`[API] Usage: input=${response.usage.input_tokens}, output=${response.usage.output_tokens}, cache_read=${response.usage.cache_read_input_tokens}, cache_create=${response.usage.cache_creation_input_tokens}`);
 
     // Extract text from response
     const textBlock = response.content.find((b) => b.type === 'text');
