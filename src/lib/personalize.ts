@@ -74,6 +74,8 @@ export async function fetchPersonalizedChunk(
     context: buildAIContext(context),
   };
 
+  console.log(`[AI Questions] Fetching chunk ${chunk} from API (${questions.length} questions)...`);
+
   const res = await fetch('/api/personalize-questions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -82,9 +84,12 @@ export async function fetchPersonalizedChunk(
   });
 
   if (!res.ok) {
-    throw new Error(`Personalization failed: ${res.status}`);
+    const errorBody = await res.text().catch(() => 'no body');
+    console.error(`[AI Questions] API returned ${res.status}: ${errorBody}`);
+    throw new Error(`Personalization failed: ${res.status} — ${errorBody}`);
   }
 
   const data = (await res.json()) as PersonalizeResponse;
+  console.log(`[AI Questions] Chunk ${chunk}: received ${data.questions?.length} personalized questions`);
   return data.questions;
 }

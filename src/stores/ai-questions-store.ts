@@ -6,65 +6,45 @@ import type { PersonalizedQuestionOutput } from '@/types/ai-questions';
 interface AIQuestionsState {
   /** Personalized questions keyed by chunk number */
   personalizedChunks: Record<number, PersonalizedQuestionOutput[]>;
-  /** Chunks currently being generated */
-  loadingChunks: Set<number>;
-  /** Chunks that failed generation */
-  failedChunks: Set<number>;
+  /** Chunk numbers currently being generated */
+  loadingChunks: number[];
+  /** Chunk numbers that failed generation */
+  failedChunks: number[];
 
   setChunkQuestions: (chunk: number, questions: PersonalizedQuestionOutput[]) => void;
   setChunkLoading: (chunk: number, loading: boolean) => void;
   setChunkFailed: (chunk: number) => void;
-  getPersonalizedQuestion: (chunk: number, questionId: string) => PersonalizedQuestionOutput | null;
-  isChunkReady: (chunk: number) => boolean;
-  isChunkLoading: (chunk: number) => boolean;
   reset: () => void;
 }
 
-export const useAIQuestionsStore = create<AIQuestionsState>()((set, get) => ({
+export const useAIQuestionsStore = create<AIQuestionsState>()((set) => ({
   personalizedChunks: {},
-  loadingChunks: new Set(),
-  failedChunks: new Set(),
+  loadingChunks: [],
+  failedChunks: [],
 
   setChunkQuestions: (chunk, questions) =>
-    set((state) => {
-      const newLoading = new Set(state.loadingChunks);
-      newLoading.delete(chunk);
-      return {
-        personalizedChunks: { ...state.personalizedChunks, [chunk]: questions },
-        loadingChunks: newLoading,
-      };
-    }),
+    set((state) => ({
+      personalizedChunks: { ...state.personalizedChunks, [chunk]: questions },
+      loadingChunks: state.loadingChunks.filter((c) => c !== chunk),
+    })),
 
   setChunkLoading: (chunk, loading) =>
-    set((state) => {
-      const newLoading = new Set(state.loadingChunks);
-      if (loading) newLoading.add(chunk);
-      else newLoading.delete(chunk);
-      return { loadingChunks: newLoading };
-    }),
+    set((state) => ({
+      loadingChunks: loading
+        ? state.loadingChunks.includes(chunk) ? state.loadingChunks : [...state.loadingChunks, chunk]
+        : state.loadingChunks.filter((c) => c !== chunk),
+    })),
 
   setChunkFailed: (chunk) =>
-    set((state) => {
-      const newLoading = new Set(state.loadingChunks);
-      newLoading.delete(chunk);
-      const newFailed = new Set(state.failedChunks);
-      newFailed.add(chunk);
-      return { loadingChunks: newLoading, failedChunks: newFailed };
-    }),
-
-  getPersonalizedQuestion: (chunk, questionId) => {
-    const questions = get().personalizedChunks[chunk];
-    return questions?.find((q) => q.id === questionId) ?? null;
-  },
-
-  isChunkReady: (chunk) => chunk in get().personalizedChunks,
-
-  isChunkLoading: (chunk) => get().loadingChunks.has(chunk),
+    set((state) => ({
+      loadingChunks: state.loadingChunks.filter((c) => c !== chunk),
+      failedChunks: state.failedChunks.includes(chunk) ? state.failedChunks : [...state.failedChunks, chunk],
+    })),
 
   reset: () =>
     set({
       personalizedChunks: {},
-      loadingChunks: new Set(),
-      failedChunks: new Set(),
+      loadingChunks: [],
+      failedChunks: [],
     }),
 }));

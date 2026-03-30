@@ -24,19 +24,36 @@ export default function ContextPage() {
     // Reset AI store for fresh generation
     useAIQuestionsStore.getState().reset();
 
+    console.log('[AI Questions] Context page: starting chunk 1 generation', {
+      lifeStage: context.lifeStage,
+      lifeStageDetail: context.lifeStageDetail,
+      workEnvironment: context.workEnvironment,
+      workEnvironmentDetail: context.workEnvironmentDetail,
+    });
+
     // Generate chunk 1 with timeout
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
 
     try {
       const questions = await fetchPersonalizedChunk(1, context, controller.signal);
+      console.log(`[AI Questions] Context page: chunk 1 success — ${questions.length} questions personalized`);
+      console.log('[AI Questions] Sample rewritten question:', questions[0]?.text);
       useAIQuestionsStore.getState().setChunkQuestions(1, questions);
-    } catch {
-      // Fallback to static variants — quiz still works
+    } catch (err) {
+      console.error('[AI Questions] Context page: chunk 1 failed, falling back to static variants:', err);
       useAIQuestionsStore.getState().setChunkFailed(1);
     } finally {
       clearTimeout(timeout);
     }
+
+    // Log store state before navigating
+    const storeState = useAIQuestionsStore.getState();
+    console.log('[AI Questions] Store state before navigation:', {
+      chunksReady: Object.keys(storeState.personalizedChunks),
+      loading: storeState.loadingChunks,
+      failed: storeState.failedChunks,
+    });
 
     setPhase('test');
     router.push('/quiz/test');

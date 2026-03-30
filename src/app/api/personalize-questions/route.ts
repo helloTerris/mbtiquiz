@@ -46,12 +46,37 @@ function buildUserPrompt(req: PersonalizeRequest): string {
   return `Person's context:\n${contextLines.map((l) => `- ${l}`).join('\n')}\n\nRewrite these ${questions.length} questions for this person:\n\n${JSON.stringify(strippedQuestions, null, 2)}`;
 }
 
+/** Extract JSON from AI response — handles raw JSON, markdown code blocks, and object wrappers */
+function extractJSON(raw: string): unknown {
+  let text = raw.trim();
+
+  // Strip markdown code blocks
+  if (text.startsWith('```')) {
+    text = text.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?\s*```$/, '');
+  }
+
+  const parsed = JSON.parse(text);
+
+  // If AI wrapped in {"questions": [...]}, unwrap
+  if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && Array.isArray(parsed.questions)) {
+    return parsed.questions;
+  }
+
+  return parsed;
+}
+
 function validateResponse(
   parsed: unknown,
   expectedIds: { qId: string; optionIds: [string, string] }[]
 ): PersonalizedQuestionOutput[] | null {
-  if (!Array.isArray(parsed)) return null;
-  if (parsed.length !== expectedIds.length) return null;
+  if (!Array.isArray(parsed)) {
+    console.error('[API] Validation: expected array, got', typeof parsed);
+    return null;
+  }
+  if (parsed.length !== expectedIds.length) {
+    console.error(`[API] Validation: expected ${expectedIds.length} questions, got ${parsed.length}`);
+    return null;
+  }
 
   const results: PersonalizedQuestionOutput[] = [];
 
@@ -66,23 +91,30 @@ function validateResponse(
       !Array.isArray(item.options) ||
       item.options.length !== 2
     ) {
+      console.error(`[API] Validation: question ${i} has invalid structure`, item);
       return null;
     }
 
-    // Validate IDs match
-    if (item.id !== expected.qId) return null;
+    if (item.id !== expected.qId) {
+      console.error(`[API] Validation: question ${i} ID mismatch — expected "${expected.qId}", got "${item.id}"`);
+      return null;
+    }
+
     if (
       typeof item.options[0]?.id !== 'string' ||
       typeof item.options[0]?.text !== 'string' ||
       typeof item.options[1]?.id !== 'string' ||
       typeof item.options[1]?.text !== 'string'
     ) {
+      console.error(`[API] Validation: question ${i} options have invalid structure`);
       return null;
     }
+
     if (
       item.options[0].id !== expected.optionIds[0] ||
       item.options[1].id !== expected.optionIds[1]
     ) {
+      console.error(`[API] Validation: question ${i} option IDs mismatch — expected [${expected.optionIds}], got [${item.options[0].id}, ${item.options[1].id}]`);
       return null;
     }
 
@@ -103,6 +135,12 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const body = (await request.json()) as PersonalizeRequest;
 
+    console.log(`[API] Received request for chunk ${body.chunk} (${body.questions?.length} questions)`);
+    console.log(`[API] Context: ${body.context?.lifeStage} / ${body.context?.workEnvironment}`, {
+      lifeStageDetail: body.context?.lifeStageDetail,
+      workEnvironmentDetail: body.context?.workEnvironmentDetail,
+    });
+
     // Basic validation
     if (
       !body.chunk ||
@@ -110,6 +148,7 @@ export async function POST(request: Request): Promise<Response> {
       body.questions.length === 0 ||
       !body.context
     ) {
+      console.error('[API] Invalid request body:', { chunk: body.chunk, questionsLen: body.questions?.length, hasContext: !!body.context });
       return Response.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
@@ -128,6 +167,9 @@ export async function POST(request: Request): Promise<Response> {
       optionIds: [q.options[0].id, q.options[1].id] as [string, string],
     }));
 
+    console.log(`[API] Calling Claude Sonnet for chunk ${body.chunk}...`);
+    const startTime = Date.now();
+
     const response = await client.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
@@ -136,39 +178,53 @@ export async function POST(request: Request): Promise<Response> {
       messages: [{ role: 'user', content: userPrompt }],
     });
 
+    const elapsed = Date.now() - startTime;
+    console.log(`[API] Claude responded in ${elapsed}ms — stop_reason: ${response.stop_reason}, usage:`, response.usage);
+
     // Extract text from response
     const textBlock = response.content.find((b) => b.type === 'text');
     if (!textBlock || textBlock.type !== 'text') {
+      console.error('[API] No text block in response. Content types:', response.content.map((b) => b.type));
       return Response.json({ error: 'No text response from AI' }, { status: 502 });
     }
 
-    // Parse JSON response
+    console.log(`[API] Raw AI response (first 500 chars):`, textBlock.text.slice(0, 500));
+
+    // Parse JSON response (handles markdown wrapping, object wrapper)
     let parsed: unknown;
     try {
-      parsed = JSON.parse(textBlock.text);
-    } catch {
+      parsed = extractJSON(textBlock.text);
+    } catch (parseErr) {
+      console.error('[API] JSON parse failed:', parseErr);
+      console.error('[API] Full raw text:', textBlock.text);
       return Response.json({ error: 'AI returned invalid JSON' }, { status: 502 });
     }
 
     // Validate structure and IDs
     const validated = validateResponse(parsed, expectedIds);
     if (!validated) {
+      console.error('[API] Validation failed. Parsed data:', JSON.stringify(parsed).slice(0, 500));
       return Response.json({ error: 'AI response failed validation' }, { status: 502 });
     }
+
+    console.log(`[API] Chunk ${body.chunk}: successfully personalized ${validated.length} questions`);
 
     const result: PersonalizeResponse = { questions: validated };
     return Response.json(result);
   } catch (error) {
     if (error instanceof Anthropic.RateLimitError) {
+      console.error('[API] Rate limited by Anthropic');
       return Response.json({ error: 'Rate limited' }, { status: 429 });
     }
     if (error instanceof Anthropic.AuthenticationError) {
+      console.error('[API] Anthropic API key invalid');
       return Response.json({ error: 'API key invalid' }, { status: 401 });
     }
     if (error instanceof Anthropic.APIError) {
+      console.error(`[API] Anthropic API error (${error.status}):`, error.message);
       return Response.json({ error: `AI service error: ${error.message}` }, { status: 502 });
     }
-    console.error('Personalize questions error:', error);
+    console.error('[API] Unexpected error:', error);
     return Response.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

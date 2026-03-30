@@ -17,11 +17,17 @@ export function usePersonalizedQuestions(chunk: number): {
   isLoading: boolean;
 } {
   const context = useContextStore((s) => s.context);
-  const isReady = useAIQuestionsStore((s) => s.isChunkReady(chunk));
-  const isLoading = useAIQuestionsStore((s) => s.isChunkLoading(chunk));
+
+  // Select raw state — arrays/objects that Zustand can diff by reference
   const personalizedChunks = useAIQuestionsStore((s) => s.personalizedChunks);
+  const loadingChunks = useAIQuestionsStore((s) => s.loadingChunks);
   const failedChunks = useAIQuestionsStore((s) => s.failedChunks);
-  const hasFailed = failedChunks.has(chunk);
+
+  // Derive booleans from raw state (in render, not in selector)
+  const isReady = chunk in personalizedChunks;
+  const isLoading = loadingChunks.includes(chunk);
+  const hasFailed = failedChunks.includes(chunk);
+
   const fetchingRef = useRef<Set<number>>(new Set());
 
   // Trigger fetch if not ready, not loading, not failed
@@ -29,18 +35,20 @@ export function usePersonalizedQuestions(chunk: number): {
     if (!context || isReady || isLoading || hasFailed) return;
     if (fetchingRef.current.has(chunk)) return;
 
+    console.log(`[AI Questions] Hook triggering fetch for chunk ${chunk}`);
     fetchingRef.current.add(chunk);
-    const store = useAIQuestionsStore.getState();
-    store.setChunkLoading(chunk, true);
+    useAIQuestionsStore.getState().setChunkLoading(chunk, true);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
 
     fetchPersonalizedChunk(chunk, context, controller.signal)
       .then((questions) => {
+        console.log(`[AI Questions] Hook: chunk ${chunk} fetched successfully (${questions.length} questions)`);
         useAIQuestionsStore.getState().setChunkQuestions(chunk, questions);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error(`[AI Questions] Hook: chunk ${chunk} fetch failed:`, err);
         useAIQuestionsStore.getState().setChunkFailed(chunk);
       })
       .finally(() => {
@@ -59,13 +67,19 @@ export function usePersonalizedQuestions(chunk: number): {
 
     // Best: AI personalized
     if (isReady && personalizedChunks[chunk]) {
+      console.log(`[AI Questions] Chunk ${chunk}: using AI-personalized questions`);
       return mergePersonalized(base, personalizedChunks[chunk]);
     }
 
     // Fallback: static contextVariants
-    if (!context) return base;
+    if (!context) {
+      console.log(`[AI Questions] Chunk ${chunk}: no context, using base questions`);
+      return base;
+    }
+
+    console.log(`[AI Questions] Chunk ${chunk}: using static contextVariants fallback (ready=${isReady}, loading=${isLoading}, failed=${hasFailed})`);
     return base.map((q) => adaptQuestion(q, context));
-  }, [chunk, isReady, personalizedChunks, context]);
+  }, [chunk, isReady, personalizedChunks, context, isLoading, hasFailed]);
 
   return { questions, isLoading };
 }
@@ -78,10 +92,24 @@ export function prefetchChunk(chunk: number): void {
   const store = useAIQuestionsStore.getState();
   const context = useContextStore.getState().context;
 
-  if (!context || store.isChunkReady(chunk) || store.loadingChunks.has(chunk) || store.failedChunks.has(chunk)) {
+  if (!context) {
+    console.log(`[AI Questions] Prefetch chunk ${chunk}: no context, skipping`);
+    return;
+  }
+  if (chunk in store.personalizedChunks) {
+    console.log(`[AI Questions] Prefetch chunk ${chunk}: already ready, skipping`);
+    return;
+  }
+  if (store.loadingChunks.includes(chunk)) {
+    console.log(`[AI Questions] Prefetch chunk ${chunk}: already loading, skipping`);
+    return;
+  }
+  if (store.failedChunks.includes(chunk)) {
+    console.log(`[AI Questions] Prefetch chunk ${chunk}: previously failed, skipping`);
     return;
   }
 
+  console.log(`[AI Questions] Prefetching chunk ${chunk}...`);
   store.setChunkLoading(chunk, true);
 
   const controller = new AbortController();
@@ -89,9 +117,11 @@ export function prefetchChunk(chunk: number): void {
 
   fetchPersonalizedChunk(chunk, context, controller.signal)
     .then((questions) => {
+      console.log(`[AI Questions] Prefetch chunk ${chunk}: success (${questions.length} questions)`);
       useAIQuestionsStore.getState().setChunkQuestions(chunk, questions);
     })
-    .catch(() => {
+    .catch((err) => {
+      console.error(`[AI Questions] Prefetch chunk ${chunk}: failed:`, err);
       useAIQuestionsStore.getState().setChunkFailed(chunk);
     });
 }
